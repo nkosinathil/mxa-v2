@@ -8,6 +8,23 @@ This service runs on the **processing server** (`192.168.1.90`) and provides:
 - MinIO input/output artifact storage
 - PostgreSQL job state persistence (DB hosted on `192.168.1.66`)
 
+## Runtime alignment with discovered python server
+
+From attached server report:
+
+- Existing runtime path is `/opt/mxa/api`
+- Existing services: `mxa-api.service`, `mxa-celery.service`
+- Existing API listens on `127.0.0.1:8000` behind nginx on port 80
+- Redis active on localhost, MinIO active on 9000/9001
+
+Use provided deployment assets:
+
+- `deploy/python-server/systemd/mxa-api.service`
+- `deploy/python-server/systemd/mxa-celery.service`
+- `deploy/python-server/nginx/mxa-api.conf`
+- `deploy/python-server/python-server.env.mxa.example`
+- `deploy/python-server/deploy-python-server.sh`
+
 ## Setup
 
 ```bash
@@ -38,3 +55,14 @@ from forensic_toolkit.runner import run_analysis
 ```
 
 Ensure `TOOLKIT_PATH` includes repository root where `forensic_toolkit/` exists.
+
+## OS package prerequisites for OCR pipeline
+
+Install on python server:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y tesseract-ocr poppler-utils ffmpeg
+```
+
+These are required for OCR/image and PDF/audio parsing paths.

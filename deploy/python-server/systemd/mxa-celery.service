@@ -1,0 +1,17 @@
+[Unit]
+Description=Premium OCR Celery Worker
+After=network.target redis-server.service mxa-api.service
+Wants=redis-server.service
+
+[Service]
+Type=simple
+User=pyminio
+Group=pyminio
+WorkingDirectory=/opt/mxa/api
+EnvironmentFile=/opt/mxa/api/.env
+ExecStart=/opt/mxa/api/venv/bin/celery -A app.tasks worker --loglevel=info --concurrency=4
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
