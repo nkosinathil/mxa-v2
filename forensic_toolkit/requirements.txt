@@ -1,0 +1,21 @@
+beautifulsoup4
+chardet
+pandas
+openpyxl
+xlrd
+pillow
+pytesseract
+pdfplumber
+pypdf
+# Optional for audio transcription
+faster-whisper
+PySide6>=6.6
+
+python-docx
+chardet
+pandas
+Pillow
+beautifulsoup4
+PyQt5
+PyQt6
+PySide6
