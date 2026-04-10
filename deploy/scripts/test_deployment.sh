@@ -87,12 +87,12 @@ test_minio() {
 test_redis() {
     echo -n "Testing Redis... "
     
-    if timeout 5 redis-cli -h 192.168.1.90 ping &>/dev/null | grep -q PONG; then
-        echo "✓ PASS"
+    if timeout 2 bash -c "cat < /dev/null > /dev/tcp/192.168.1.90/6379" 2>/dev/null; then
+        echo "✓ PASS (port 6379 reachable)"
         ((PASSED++))
         return 0
     else
-        echo "✗ FAIL"
+        echo "✗ FAIL (port 6379 not reachable)"
         ((FAILED++))
         return 1
     fi

@@ -84,6 +84,10 @@ echo "✓ MinIO data directory created"
 mkdir -p $PYTHON_DIR
 mkdir -p $PYTHON_DIR/logs
 chown -R celery:celery $PYTHON_DIR
+
+# The FastAPI service runs as www-data (per systemd unit); add www-data to celery group
+# so it can read the application files owned by celery
+usermod -aG celery www-data
 echo "✓ Application directory created: $PYTHON_DIR"
 
 echo ""

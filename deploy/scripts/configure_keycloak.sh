@@ -77,16 +77,17 @@ fi
 
 echo ""
 echo "Step 3: Creating client '$CLIENT_ID'..."
-CLIENT_EXISTS=$(curl -s "$KEYCLOAK_URL/admin/realms/$REALM/clients" \
+CLIENT_UUID=$(curl -s "$KEYCLOAK_URL/admin/realms/$REALM/clients" \
     -H "Authorization: Bearer $ADMIN_TOKEN" | jq -r ".[] | select(.clientId==\"$CLIENT_ID\") | .id")
 
-if [ ! -z "$CLIENT_EXISTS" ]; then
-    echo "✓ Client '$CLIENT_ID' already exists (ID: $CLIENT_EXISTS)"
-    CLIENT_UUID="$CLIENT_EXISTS"
+if [ ! -z "$CLIENT_UUID" ] && [ "$CLIENT_UUID" != "null" ]; then
+    echo "✓ Client '$CLIENT_ID' already exists (ID: $CLIENT_UUID)"
 else
-    CLIENT_UUID=$(curl -s -X POST "$KEYCLOAK_URL/admin/realms/$REALM/clients" \
+    # Keycloak returns the new UUID in the Location response header (HTTP 201)
+    LOCATION=$(curl -s -X POST "$KEYCLOAK_URL/admin/realms/$REALM/clients" \
         -H "Authorization: Bearer $ADMIN_TOKEN" \
         -H "Content-Type: application/json" \
+        -D - -o /dev/null \
         -d "{
             \"clientId\": \"$CLIENT_ID\",
             \"name\": \"MxA Mobile Web Application\",
@@ -103,7 +104,14 @@ else
             \"attributes\": {
                 \"pkce.code.challenge.method\": \"S256\"
             }
-        }" -w "%{redirect_url}" | grep -oP 'clients/\K[^/]+')
+        }" | grep -i "^Location:" | tr -d '\r' | awk '{print $2}')
+    
+    CLIENT_UUID=$(basename "$LOCATION")
+    
+    if [ -z "$CLIENT_UUID" ] || [ "$CLIENT_UUID" == "null" ]; then
+        echo "✗ Failed to create client '$CLIENT_ID'"
+        exit 1
+    fi
     
     echo "✓ Client '$CLIENT_ID' created (ID: $CLIENT_UUID)"
 fi
@@ -155,10 +163,11 @@ USER_EXISTS=$(curl -s "$KEYCLOAK_URL/admin/realms/$REALM/users?username=admin" \
 if [ "$USER_EXISTS" == "admin" ]; then
     echo "✓ Admin user already exists"
 else
-    # Create user
-    USER_ID=$(curl -s -X POST "$KEYCLOAK_URL/admin/realms/$REALM/users" \
+    # Create user — Keycloak returns the new UUID in the Location response header (HTTP 201)
+    USER_LOCATION=$(curl -s -X POST "$KEYCLOAK_URL/admin/realms/$REALM/users" \
         -H "Authorization: Bearer $ADMIN_TOKEN" \
         -H "Content-Type: application/json" \
+        -D - -o /dev/null \
         -d '{
             "username": "admin",
             "email": "admin@example.com",
@@ -166,7 +175,9 @@ else
             "lastName": "Administrator",
             "enabled": true,
             "emailVerified": true
-        }' -w "%{redirect_url}" | grep -oP 'users/\K[^/]+')
+        }' | grep -i "^Location:" | tr -d '\r' | awk '{print $2}')
+    
+    USER_ID=$(basename "$USER_LOCATION")
     
     # Set password
     curl -s -X PUT "$KEYCLOAK_URL/admin/realms/$REALM/users/$USER_ID/reset-password" \

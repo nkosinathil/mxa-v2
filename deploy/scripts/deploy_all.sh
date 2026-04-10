@@ -120,6 +120,13 @@ if [ "$SKIP_KEYCLOAK" = false ]; then
         echo ""
         echo "IMPORTANT: Save the client secret displayed above!"
         read -p "Press Enter to continue..."
+        
+        echo ""
+        echo "Phase 2b: Updating .env files with Keycloak secret..."
+        read -p "Update .env files now? (yes/no): " UPDATE_ENV
+        if [ "$UPDATE_ENV" = "yes" ]; then
+            bash "$SCRIPT_DIR/update_env.sh"
+        fi
     fi
 fi
 

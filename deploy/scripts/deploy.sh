@@ -7,7 +7,7 @@
 
 set -e
 
-REPO_URL="<repository-url>"
+REPO_URL="${REPO_URL:-https://github.com/nkosinathil/mxa-v2.git}"
 APP_DIR="/var/www/mxa-mobile-app"
 PYTHON_DIR="/opt/apps/mxa-mobile"
 BACKUP_DIR="/var/backups/mxa-mobile"
