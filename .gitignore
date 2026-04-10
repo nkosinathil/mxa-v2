@@ -1,0 +1,89 @@
+# MxA Mobile - Git Ignore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# PHP
+/php-app/vendor/
+/php-app/storage/logs/*.log
+/php-app/storage/cache/*
+/php-app/composer.lock
+*.phar
+
+# Python
+/python-backend/venv/
+/python-backend/.venv/
+/python-backend/__pycache__/
+/python-backend/**/__pycache__/
+/python-backend/*.pyc
+/python-backend/*.pyo
+/python-backend/*.egg-info/
+/python-backend/.pytest_cache/
+/python-backend/.coverage
+/python-backend/htmlcov/
+/python-backend/.mypy_cache/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+dist/
+build/
+*.egg
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Node (if using npm for frontend assets)
+node_modules/
+package-lock.json
+yarn.lock
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Test coverage
+coverage/
+.coverage
+htmlcov/
+
+# Sensitive data (just in case)
+*.pem
+*.key
+*.crt
+secrets/
+
+# Case data and uploads (should be in MinIO, not in repo)
+/uploads/
+/cases/
+/media/
+/output/
+
+# Original Qt desktop app zip (keep unzipped version for reference)
+# forensic_toolkit.zip is kept for reference
+# forensic_toolkit/ directory is preserved as legacy reference
