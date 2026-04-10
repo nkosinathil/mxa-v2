@@ -1,0 +1,1 @@
+Updated GPS/EXIF persistence, DB-driven map loading, and map diagnostics.

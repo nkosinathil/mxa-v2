@@ -1,0 +1,20 @@
+MxA preview updates included in this package
+
+1. Correct .txt export
+- Saving as .txt now writes plain text, not HTML.
+- WhatsApp exports default to the reconstructed conversation text when saved as .txt.
+- HTML exports still save the styled preview.
+
+2. Upgraded preview viewer
+- More polished dark investigator preview.
+- WhatsApp-style conversation tab with reconstructed thread view.
+- Added Raw Record tab for investigator-friendly record details.
+- Added stronger metadata presentation.
+- Added image preview cards when local image attachments exist.
+- Added local open links for audio/video/other attachments.
+
+3. Search table tweaks
+- Details column widened further.
+- Wrapped text retained.
+- Row auto-height retained.
+- Removed single-click preview popup; use double-click or Preview Selected.
