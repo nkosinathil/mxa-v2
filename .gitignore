@@ -1,0 +1,11 @@
+/forensic_toolkit.zip
+/php-app/.env
+/python-backend/.env
+/php-app/storage/
+/python-backend/.venv/
+/python-backend/tmp/
+/python-backend/output/
+/python-backend/uploads/
+/.pytest_cache/
+/__pycache__/
+*.pyc

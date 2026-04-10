@@ -1,0 +1,17 @@
+Transcription Insights update
+
+This build adds a dedicated Disabled transcription state.
+
+What changed:
+- Audio records now persist transcription_status and transcription_reason in SQLite.
+- The parser marks audio as Disabled when transcription was turned off during processing.
+- The Insights tab now shows:
+  - Transcribed
+  - Skipped
+  - Disabled
+- The Search tab transcription filter now includes Disabled.
+- Clicking Disabled in Insights opens Search filtered to audio items where transcription was disabled.
+
+Notes:
+- Existing databases created before this change may not have transcription_status populated.
+- New processing runs will save the explicit status correctly.

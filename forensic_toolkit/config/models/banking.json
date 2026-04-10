@@ -1,0 +1,105 @@
+{
+  "categories": [
+    {
+      "name": "Banking",
+      "keywords": [
+        "bank",
+        "banking",
+        "account",
+        "payment",
+        "transfer",
+        "deposit",
+        "withdrawal",
+        "transaction",
+        "beneficiary",
+        "bank details",
+        "banking details",
+        "statement",
+        "balance",
+        "card",
+        "atm",
+        "swift",
+        "iban",
+        "eft",
+        "otp",
+        "one time pin",
+        "unauthorized"
+      ],
+      "match_mode": "any",
+      "priority": 5
+    },
+    {
+      "name": "Payments",
+      "keywords": [
+        "payment",
+        "paid",
+        "eft",
+        "settlement",
+        "remit",
+        "beneficiary",
+        "invoice paid",
+        "proof of payment",
+        "pop"
+      ],
+      "match_mode": "any",
+      "priority": 6
+    },
+    {
+      "name": "Accounts",
+      "keywords": [
+        "account",
+        "account number",
+        "balance",
+        "statement",
+        "bank account",
+        "savings",
+        "current account"
+      ],
+      "match_mode": "any",
+      "priority": 7
+    },
+    {
+      "name": "Transfers",
+      "keywords": [
+        "transfer",
+        "send money",
+        "receive money",
+        "wire",
+        "swift",
+        "iban",
+        "cash send"
+      ],
+      "match_mode": "any",
+      "priority": 8
+    },
+    {
+      "name": "Cards",
+      "keywords": [
+        "card",
+        "atm",
+        "pin",
+        "credit card",
+        "debit card",
+        "swipe"
+      ],
+      "match_mode": "any",
+      "priority": 9
+    },
+    {
+      "name": "Fraud",
+      "keywords": [
+        "otp",
+        "one time pin",
+        "phishing",
+        "scam",
+        "unauthorized",
+        "fraud",
+        "bank detail change",
+        "beneficiary change",
+        "account change"
+      ],
+      "match_mode": "any",
+      "priority": 10
+    }
+  ]
+}

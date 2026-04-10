@@ -1,0 +1,21 @@
+MxA Full Forensic UI upgrades
+
+Included in this build:
+- Auto-search on filter changes (keyword, mode, category, dates, tagged-only)
+- Tagged-only quick filter
+- Wider details column and wrapped multi-line results
+- Polished preview modal with:
+  - Preview tab
+  - Conversation tab
+  - Timeline tab
+  - Metadata tab
+  - Raw Record tab
+- True TXT export and HTML export from preview
+- WhatsApp thread reconstruction from SQLite
+- Investigator-style chronological timeline stream
+- Roboto font loading and premium dark theme
+- Correct communications/media icon mapping in Insights
+- Category dropdown loads from effective case config + SQLite categories
+
+Run:
+python -m forensic_toolkit.gui
