@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     minio_access_key: str = Field(default='minioadmin', alias='MINIO_ACCESS_KEY')
     minio_secret_key: str = Field(default='minioadmin', alias='MINIO_SECRET_KEY')
     minio_secure: bool = Field(default=False, alias='MINIO_SECURE')
-    minio_bucket_input: str = Field(default='premium-ocr-input', alias='MINIO_BUCKET_INPUT')
-    minio_bucket_output: str = Field(default='premium-ocr-output', alias='MINIO_BUCKET_OUTPUT')
+    minio_bucket_input: str = Field(default='mxa-mobile-analytics-input', alias='MINIO_BUCKET_INPUT')
+    minio_bucket_output: str = Field(default='mxa-mobile-analytics-output', alias='MINIO_BUCKET_OUTPUT')
     minio_presign_expire: int = Field(default=3600, alias='MINIO_PRESIGN_EXPIRE')
 
     postgres_dsn: str = Field(alias='POSTGRES_DSN')

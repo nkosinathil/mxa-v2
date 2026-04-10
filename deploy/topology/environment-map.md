@@ -1,4 +1,4 @@
-# Premium OCR Environment Mapping
+# MxA - Mobile Analytics Environment Mapping
 
 This platform is hardened for the discovered three-server topology.
 
@@ -7,7 +7,7 @@ This platform is hardened for the discovered three-server topology.
 Components:
 
 - Apache + PHP-FPM frontend (`/var/www/gismartanalytics/public`)
-- PostgreSQL database (`premium_ocr`)
+- PostgreSQL database (`mxa_mobile_analytics`)
 
 Responsibilities:
 
@@ -57,7 +57,7 @@ Responsibilities:
 
 Hardening notes:
 
-- Align to existing `/opt/mxa/api` deployment model
+- Align to existing `/opt/mxa-mobile-analytics/api` deployment model
 - Keep API on `127.0.0.1:8000` behind nginx `:80`
 - Ensure OS packages installed: `tesseract-ocr`, `poppler-utils`, `ffmpeg`
 

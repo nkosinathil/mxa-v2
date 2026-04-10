@@ -11,7 +11,7 @@ from .models import JobPayload, JobResponse, JobStatusResponse
 from .security import require_api_key
 from .services import enqueue_job, resolve_job_status
 
-app = FastAPI(title='Premium OCR Processing API', version='1.0.0')
+app = FastAPI(title='MxA Mobile Analytics Processing API', version='1.0.0')
 
 
 @app.get('/health')

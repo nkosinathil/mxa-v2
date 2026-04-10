@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ ! -d /opt/mxa/api ]]; then
-  echo "[error] /opt/mxa/api not found on this host"
+if [[ ! -d /opt/mxa-mobile-analytics/api ]]; then
+  echo "[error] /opt/mxa-mobile-analytics/api not found on this host"
   exit 1
 fi
 
-sudo install -d -m 0755 /opt/mxa/data/uploads /opt/mxa/data/tmp /opt/mxa/data/output
-sudo chown -R pyminio:pyminio /opt/mxa/data
+sudo install -d -m 0755 /opt/mxa-mobile-analytics/data/uploads /opt/mxa-mobile-analytics/data/tmp /opt/mxa-mobile-analytics/data/output
+sudo chown -R pyminio:pyminio /opt/mxa-mobile-analytics/data
 
 sudo install -m 0644 deploy/python-server/nginx/mxa-api.conf /etc/nginx/sites-available/mxa-api
 if [[ ! -L /etc/nginx/sites-enabled/mxa-api ]]; then

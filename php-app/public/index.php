@@ -13,7 +13,7 @@ $jobs = $_SESSION['jobs'] ?? [];
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Premium OCR Platform</title>
+  <title>MxA - Mobile Analytics Platform</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
     .panel { border: 1px solid #d1d5db; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
@@ -27,7 +27,7 @@ $jobs = $_SESSION['jobs'] ?? [];
 </head>
 <body>
   <div class="panel">
-    <h2>Premium OCR</h2>
+    <h2>MxA - Mobile Analytics</h2>
     <p>Signed in as <strong><?= h((string)($user['email'] ?? $user['preferred_username'] ?? 'unknown')) ?></strong>.</p>
     <p>Environment mapping: App `192.168.1.66` | SSO `192.168.1.59` | Python `192.168.1.90`.</p>
     <a class="btn secondary" href="/logout.php" style="text-decoration:none;display:inline-block;">Sign Out</a>

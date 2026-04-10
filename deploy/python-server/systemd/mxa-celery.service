@@ -1,5 +1,5 @@
 [Unit]
-Description=Premium OCR Celery Worker
+Description=MxA Mobile Analytics Celery Worker
 After=network.target redis-server.service mxa-api.service
 Wants=redis-server.service
 
@@ -7,9 +7,9 @@ Wants=redis-server.service
 Type=simple
 User=pyminio
 Group=pyminio
-WorkingDirectory=/opt/mxa/api
-EnvironmentFile=/opt/mxa/api/.env
-ExecStart=/opt/mxa/api/venv/bin/celery -A app.tasks worker --loglevel=info --concurrency=4
+WorkingDirectory=/opt/mxa-mobile-analytics/api
+EnvironmentFile=/opt/mxa-mobile-analytics/api/.env
+ExecStart=/opt/mxa-mobile-analytics/api/venv/bin/celery -A app.tasks worker --loglevel=info --concurrency=4
 Restart=always
 RestartSec=5
 

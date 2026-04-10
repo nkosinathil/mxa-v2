@@ -1,5 +1,5 @@
 [Unit]
-Description=Premium OCR FastAPI Service
+Description=MxA Mobile Analytics API Service
 After=network.target redis-server.service
 Wants=redis-server.service
 
@@ -7,9 +7,9 @@ Wants=redis-server.service
 Type=simple
 User=pyminio
 Group=pyminio
-WorkingDirectory=/opt/mxa/api
-EnvironmentFile=/opt/mxa/api/.env
-ExecStart=/opt/mxa/api/venv/bin/gunicorn -w 2 -k uvicorn_worker.UvicornWorker -b 127.0.0.1:8000 app.main:app
+WorkingDirectory=/opt/mxa-mobile-analytics/api
+EnvironmentFile=/opt/mxa-mobile-analytics/api/.env
+ExecStart=/opt/mxa-mobile-analytics/api/venv/bin/gunicorn -w 2 -k uvicorn_worker.UvicornWorker -b 127.0.0.1:8000 app.main:app
 Restart=always
 RestartSec=5
 LimitNOFILE=65535

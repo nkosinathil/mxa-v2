@@ -13,7 +13,7 @@ from .database import get_job, update_job_status
 from .storage import MinioStorage, zip_directory
 
 settings = get_settings()
-celery_app = Celery('premium_ocr', broker=settings.celery_broker_url, backend=settings.celery_result_backend)
+celery_app = Celery('mxa_mobile_analytics', broker=settings.celery_broker_url, backend=settings.celery_result_backend)
 celery_app.conf.task_track_started = True
 celery_app.conf.worker_max_tasks_per_child = 20
 
@@ -31,7 +31,7 @@ def _input_key_from_row(row: dict[str, Any]) -> str:
     raise RuntimeError('Job input object key is missing in database row.')
 
 
-@celery_app.task(name='premium_ocr.process_job', bind=True)
+@celery_app.task(name='mxa_mobile_analytics.process_job', bind=True)
 def process_job(self, job_id: str) -> dict[str, Any]:
     row = get_job(job_id)
     if row is None:

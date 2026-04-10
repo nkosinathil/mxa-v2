@@ -1,1 +1,1 @@
-"""Premium OCR Python backend package."""
+"""MxA Mobile Analytics Python backend package."""

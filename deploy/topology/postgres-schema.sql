@@ -1,4 +1,4 @@
--- PostgreSQL schema for Premium OCR platform
+-- PostgreSQL schema for MxA - Mobile Analytics platform
 
 CREATE TABLE IF NOT EXISTS ocr_jobs (
     job_id TEXT PRIMARY KEY,

@@ -1,6 +1,6 @@
-# Premium OCR Web Platform (PHP + Python)
+# MxA - Mobile Analytics Web Platform (PHP + Python)
 
-This repository now contains a web-based Premium OCR platform converted from the attached desktop-oriented toolkit.
+This repository now contains a web-based MxA - Mobile Analytics platform converted from the attached desktop-oriented toolkit.
 
 ## Environment Memory Confirmation
 

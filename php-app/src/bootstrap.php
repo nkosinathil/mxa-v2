@@ -11,7 +11,7 @@ require_once __DIR__ . '/SsoClient.php';
 require_once __DIR__ . '/ApiClient.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_name('premium_ocr');
+    session_name('mxa_mobile_analytics');
     session_start();
 }
 

@@ -1,4 +1,4 @@
-# PHP Frontend - Premium OCR
+# PHP Frontend - MxA - Mobile Analytics
 
 This application runs on the **application server** (`192.168.1.66`) and provides:
 
@@ -16,7 +16,7 @@ From the attached app report:
 
 Use provided deployment assets:
 
-- `deploy/app-server/apache-vhost-premium-ocr.conf`
+- `deploy/app-server/apache-vhost-mxa-mobile-analytics.conf`
 - `deploy/app-server/php-upload-overrides.ini`
 - `deploy/app-server/deploy-app-server.sh`
 
@@ -41,7 +41,7 @@ php -S 0.0.0.0:8080 -t public
 ## Production env highlights
 
 - `PYTHON_API_BASE_URL=http://192.168.1.90`
-- `SSO_ISSUER=http://sso.gint.co.za/realms/premium-ocr`
+- `SSO_ISSUER=http://sso.gint.co.za/realms/mxa-mobile-analytics`
 - `SSO_REDIRECT_URI=http://192.168.1.66/callback.php`
 
 > If Keycloak remains `hostname-strict=true`, do not use raw IP for SSO endpoints.

@@ -1,4 +1,4 @@
-# Python Backend - Premium OCR Processing
+# Python Backend - MxA - Mobile Analytics Processing
 
 This service runs on the **processing server** (`192.168.1.90`) and provides:
 
@@ -12,7 +12,7 @@ This service runs on the **processing server** (`192.168.1.90`) and provides:
 
 From attached server report:
 
-- Existing runtime path is `/opt/mxa/api`
+- Existing runtime path is `/opt/mxa-mobile-analytics/api`
 - Existing services: `mxa-api.service`, `mxa-celery.service`
 - Existing API listens on `127.0.0.1:8000` behind nginx on port 80
 - Redis active on localhost, MinIO active on 9000/9001
