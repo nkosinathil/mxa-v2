@@ -1,9 +1,9 @@
 # MxA Mobile - Python Backend Requirements
 
 # Web Framework
-fastapi==0.104.1
+fastapi==0.109.1
 uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+python-multipart==0.0.22
 
 # Database
 psycopg2-binary==2.9.9
@@ -19,7 +19,7 @@ minio==7.2.0
 boto3==1.29.7
 
 # Authentication
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 python-keycloak==3.7.0
 
 # Utilities
@@ -41,7 +41,7 @@ beautifulsoup4==4.12.2
 chardet==5.2.0
 
 # Image Processing
-pillow==10.1.0
+pillow==12.1.1
 pytesseract==0.3.10
 
 # PDF Processing
@@ -61,9 +61,8 @@ extract-msg==0.48.3
 pytest==7.4.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
-httpx==0.25.2
 
 # Development
-black==23.12.0
+black==26.3.1
 flake8==6.1.0
 mypy==1.7.1
