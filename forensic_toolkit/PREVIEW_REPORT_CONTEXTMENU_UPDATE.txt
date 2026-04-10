@@ -1,0 +1,8 @@
+MxA UI update
+- Attachment paths are now stored relative to the case output folder for new processing runs.
+- Preview dialog resolves relative paths at runtime.
+- Preview supports inline image rendering and audio playback via the Media tab.
+- Open Attachment now uses local file opening helpers for better Windows support.
+- Search results now include a right-click context menu with Preview, Tag, and Export.
+- Report tab supports export to CSV, Excel, HTML, and PDF.
+- Table refresh operations were optimized to improve button responsiveness.

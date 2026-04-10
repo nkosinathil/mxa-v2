@@ -1,0 +1,55 @@
+{
+  "categories": [
+    {
+      "name": "All items",
+      "keywords": [],
+      "match_mode": "all",
+      "priority": 9999
+    },
+    {
+      "name": "Personal",
+      "keywords": [
+        "family",
+        "wife",
+        "husband",
+        "child",
+        "home",
+        "birthday",
+        "funeral",
+        "love",
+        "friend",
+        "mother",
+        "father",
+        "school",
+        "house",
+        "visit",
+        "baby",
+        "wedding",
+        "weekend"
+      ],
+      "match_mode": "any",
+      "priority": 50
+    },
+    {
+      "name": "Promotional",
+      "keywords": [
+        "special",
+        "discount",
+        "sale",
+        "promotion",
+        "offer",
+        "buy now",
+        "limited",
+        "subscribe",
+        "deal",
+        "advert",
+        "free delivery",
+        "promo",
+        "clearance",
+        "exclusive"
+      ],
+      "match_mode": "any",
+      "priority": 60
+    }
+  ]
+}
