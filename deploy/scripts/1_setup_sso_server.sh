@@ -21,7 +21,8 @@ KEYCLOAK_VERSION="23.0.0"
 KEYCLOAK_DIR="/opt/keycloak"
 KEYCLOAK_USER="keycloak"
 KEYCLOAK_ADMIN="admin"
-KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin123}"
+KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-}"
+KEYCLOAK_HOSTNAME="${KEYCLOAK_HOSTNAME:-192.168.1.59}"
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then 
@@ -29,12 +30,20 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+if [ -z "$KEYCLOAK_ADMIN_PASSWORD" ]; then
+    echo "KEYCLOAK_ADMIN_PASSWORD must be set (export KEYCLOAK_ADMIN_PASSWORD=...)"
+    exit 1
+fi
+
+export DEBIAN_FRONTEND=noninteractive
+
 echo "Step 1: Installing Java..."
 if command -v java &> /dev/null; then
     echo "✓ Java already installed: $(java -version 2>&1 | head -n 1)"
 else
     apt-get update
-    apt-get install -y openjdk-11-jdk
+    # Keycloak 23 requires Java 17+.
+    apt-get install -y openjdk-17-jdk
     echo "✓ Java installed"
 fi
 
@@ -76,7 +85,7 @@ Group=$KEYCLOAK_USER
 WorkingDirectory=$KEYCLOAK_DIR
 Environment="KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN"
 Environment="KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD"
-ExecStart=$KEYCLOAK_DIR/bin/kc.sh start-dev --http-port=8080
+ExecStart=$KEYCLOAK_DIR/bin/kc.sh start --http-enabled=true --http-port=8080 --hostname=$KEYCLOAK_HOSTNAME --hostname-strict=false
 Restart=always
 RestartSec=10
 
@@ -117,7 +126,7 @@ echo "SSO Server Setup Complete!"
 echo "=========================================="
 echo ""
 echo "Keycloak Admin Console:"
-echo "  URL: http://192.168.1.59:8080"
+echo "  URL: http://$KEYCLOAK_HOSTNAME:8080"
 echo "  Username: $KEYCLOAK_ADMIN"
 echo "  Password: $KEYCLOAK_ADMIN_PASSWORD"
 echo ""

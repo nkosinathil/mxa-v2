@@ -19,14 +19,23 @@ echo "=========================================="
 APP_DIR="/var/www/mxa-mobile-app"
 DB_NAME="mxa_mobile"
 DB_USER="mxa_mobile_user"
-DB_PASSWORD="${DB_PASSWORD:-ChangeMeInProduction123!}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+DB_PASSWORD_SQL_ESCAPED="${DB_PASSWORD//\'/\'\'}"
 REPO_URL="${REPO_URL:-https://github.com/nkosinathil/mxa-v2.git}"
+DEPLOY_REF="${DEPLOY_REF:-main}"
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then 
     echo "Please run as root or with sudo"
     exit 1
 fi
+
+if [ -z "$DB_PASSWORD" ]; then
+    echo "DB_PASSWORD must be set (export DB_PASSWORD=...)"
+    exit 1
+fi
+
+export DEBIAN_FRONTEND=noninteractive
 
 echo ""
 echo "Step 1: Installing Apache and PHP..."
@@ -53,13 +62,20 @@ sleep 5
 
 # Create database and user
 sudo -u postgres psql <<EOF
--- Create database
-DROP DATABASE IF EXISTS $DB_NAME;
-CREATE DATABASE $DB_NAME;
+-- Create or update user
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$DB_USER') THEN
+        CREATE ROLE $DB_USER LOGIN ENCRYPTED PASSWORD '$DB_PASSWORD_SQL_ESCAPED';
+    ELSE
+        ALTER ROLE $DB_USER WITH LOGIN ENCRYPTED PASSWORD '$DB_PASSWORD_SQL_ESCAPED';
+    END IF;
+END
+\$\$;
 
--- Create user
-DROP USER IF EXISTS $DB_USER;
-CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASSWORD';
+-- Create database if needed
+SELECT 'CREATE DATABASE $DB_NAME OWNER $DB_USER'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME')\gexec
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
@@ -89,9 +105,18 @@ echo "Step 5: Cloning repository..."
 cd $APP_DIR
 if [ ! -d "current" ]; then
     sudo -u www-data git clone "$REPO_URL" current
+    sudo -u www-data git -C current checkout "$DEPLOY_REF"
+    if sudo -u www-data git -C current rev-parse --verify --quiet "origin/$DEPLOY_REF" >/dev/null; then
+        sudo -u www-data git -C current reset --hard "origin/$DEPLOY_REF"
+    fi
     echo "✓ Repository cloned"
 else
-    echo "✓ Repository already exists"
+    sudo -u www-data git -C current fetch --all --tags
+    sudo -u www-data git -C current checkout "$DEPLOY_REF"
+    if sudo -u www-data git -C current rev-parse --verify --quiet "origin/$DEPLOY_REF" >/dev/null; then
+        sudo -u www-data git -C current reset --hard "origin/$DEPLOY_REF"
+    fi
+    echo "✓ Repository updated"
 fi
 
 echo ""
@@ -155,8 +180,12 @@ echo "✓ Apache configured and restarted"
 
 echo ""
 echo "Step 10: Configuring firewall..."
-ufw allow 'Apache Full'
-ufw allow from 192.168.1.90 to any port 5432
+if command -v ufw &>/dev/null; then
+    ufw allow 'Apache Full'
+    ufw allow from 192.168.1.90 to any port 5432
+else
+    echo "⚠ ufw not installed, skipping firewall rules"
+fi
 
 echo "✓ Firewall configured"
 

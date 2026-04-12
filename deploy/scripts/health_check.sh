@@ -4,6 +4,8 @@
 # Monitors system health and reports status
 #
 
+set -u
+
 echo "=========================================="
 echo "MxA Mobile - Health Check"
 echo "=========================================="
@@ -95,7 +97,7 @@ echo ""
 
 # Database
 echo "=== Database ==="
-if [ ! -z "$DB_PASSWORD" ]; then
+if [ -n "${DB_PASSWORD:-}" ]; then
     export PGPASSWORD="$DB_PASSWORD"
     if psql -h 192.168.1.66 -U mxa_mobile_user -d mxa_mobile -c "SELECT 1" &>/dev/null; then
         echo -e "${GREEN}✓${NC} PostgreSQL is accessible"
@@ -128,13 +130,20 @@ echo ""
 # Recent Errors
 echo "=== Recent Application Errors ==="
 if [ -f "/var/www/mxa-mobile-app/current/php-app/storage/logs/app.log" ]; then
-    ERROR_COUNT=$(grep -i error /var/www/mxa-mobile-app/current/php-app/storage/logs/app.log 2>/dev/null | tail -24h | wc -l)
-    echo "PHP errors (last 24h): $ERROR_COUNT"
+    # Approximate last-24h view by sampling recent log lines.
+    ERROR_COUNT=$(tail -n 5000 /var/www/mxa-mobile-app/current/php-app/storage/logs/app.log 2>/dev/null | grep -i "error" | wc -l)
+    echo "PHP errors (recent log sample): $ERROR_COUNT"
 fi
 
 if [ -f "/opt/apps/mxa-mobile/logs/api.log" ]; then
-    ERROR_COUNT=$(grep -i error /opt/apps/mxa-mobile/logs/api.log 2>/dev/null | tail -24h | wc -l)
-    echo "Python errors (last 24h): $ERROR_COUNT"
+    ERROR_COUNT=$(tail -n 5000 /opt/apps/mxa-mobile/logs/api.log 2>/dev/null | grep -i "error" | wc -l)
+    echo "Python errors (recent log sample): $ERROR_COUNT"
+fi
+echo ""
+
+if [ -f "/opt/apps/mxa-mobile/logs/celery-worker.log" ]; then
+    ERROR_COUNT=$(tail -n 5000 /opt/apps/mxa-mobile/logs/celery-worker.log 2>/dev/null | grep -i "error" | wc -l)
+    echo "Celery errors (recent log sample): $ERROR_COUNT"
 fi
 echo ""
 

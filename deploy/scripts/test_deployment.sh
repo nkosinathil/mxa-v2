@@ -7,7 +7,7 @@
 # - All servers set up and services running
 #
 
-set -e
+set -euo pipefail
 
 echo "=========================================="
 echo "MxA Mobile - Deployment Test"
@@ -26,6 +26,12 @@ DB_PASSWORD="${DB_PASSWORD}"
 
 PASSED=0
 FAILED=0
+CURRENT_HOST_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+
+if [ -z "${DB_PASSWORD:-}" ]; then
+    echo "DB_PASSWORD must be set (export DB_PASSWORD=...)"
+    exit 1
+fi
 
 # Test function
 test_endpoint() {
@@ -98,29 +104,34 @@ test_redis() {
     fi
 }
 
-# Test systemd services
+# Test systemd service on an explicit host.
+# If host is local, check locally. For remote host, require SSH check.
 test_service() {
     local service="$1"
-    local host="${2:-localhost}"
+    local host="$2"
     
-    echo -n "Testing service $service... "
+    echo -n "Testing service $service on $host... "
     
-    if ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no "$host" "systemctl is-active --quiet $service" 2>/dev/null; then
+    if [ "$host" = "localhost" ] || [ "$host" = "127.0.0.1" ] || [ "$host" = "$CURRENT_HOST_IP" ]; then
+        if systemctl is-active --quiet "$service" 2>/dev/null; then
+            echo "✓ PASS"
+            ((PASSED++))
+            return 0
+        fi
+        echo "✗ FAIL"
+        ((FAILED++))
+        return 1
+    fi
+
+    if ssh -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=no "$host" "systemctl is-active --quiet $service" 2>/dev/null; then
         echo "✓ PASS"
         ((PASSED++))
         return 0
-    else
-        # If SSH fails, try local
-        if systemctl is-active --quiet "$service" 2>/dev/null; then
-            echo "✓ PASS (local)"
-            ((PASSED++))
-            return 0
-        else
-            echo "✗ FAIL"
-            ((FAILED++))
-            return 1
-        fi
     fi
+
+    echo "✗ FAIL (remote check failed; ensure SSH access)"
+    ((FAILED++))
+    return 1
 }
 
 echo ""
@@ -131,8 +142,8 @@ echo ""
 echo "=== Testing Application Server (192.168.1.66) ==="
 test_endpoint "PHP Web Application" "$APP_URL" "200"
 test_postgresql
-test_service "apache2"
-test_service "postgresql"
+test_service "apache2" "192.168.1.66"
+test_service "postgresql" "192.168.1.66"
 
 echo ""
 echo "=== Testing Python Server (192.168.1.90) ==="
@@ -140,10 +151,10 @@ test_endpoint "FastAPI Health" "$PYTHON_URL/health"
 test_endpoint "FastAPI Readiness" "$PYTHON_URL/health/ready"
 test_minio
 test_redis
-test_service "mxa-mobile-api"
-test_service "mxa-mobile-worker"
-test_service "minio"
-test_service "redis-server"
+test_service "mxa-mobile-api" "192.168.1.90"
+test_service "mxa-mobile-worker" "192.168.1.90"
+test_service "minio" "192.168.1.90"
+test_service "redis-server" "192.168.1.90"
 
 echo ""
 echo "=== Testing API Endpoints ==="

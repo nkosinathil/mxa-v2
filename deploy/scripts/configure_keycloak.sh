@@ -17,7 +17,7 @@ echo "=========================================="
 # Configuration
 KEYCLOAK_URL="${KEYCLOAK_URL:-http://192.168.1.59:8080}"
 ADMIN_USER="${KEYCLOAK_ADMIN:-admin}"
-ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin123}"
+ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-}"
 REALM="forensics"
 CLIENT_ID="mxa-mobile-web"
 REDIRECT_URI="http://192.168.1.66/auth/callback"
@@ -27,6 +27,11 @@ echo "Keycloak Server: $KEYCLOAK_URL"
 echo "Realm: $REALM"
 echo "Client ID: $CLIENT_ID"
 echo ""
+
+if [ -z "$ADMIN_PASSWORD" ]; then
+    echo "KEYCLOAK_ADMIN_PASSWORD must be set (export KEYCLOAK_ADMIN_PASSWORD=...)"
+    exit 1
+fi
 
 # Function to get admin token
 get_admin_token() {

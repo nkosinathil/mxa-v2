@@ -19,17 +19,30 @@ echo "=========================================="
 PYTHON_DIR="/opt/apps/mxa-mobile"
 REPO_URL="${REPO_URL:-https://github.com/nkosinathil/mxa-v2.git}"
 MINIO_ROOT_USER="${MINIO_ROOT_USER:-minioadmin}"
-MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD:-minioadmin123}"
+MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD:-}"
 DB_HOST="192.168.1.66"
 DB_NAME="mxa_mobile"
 DB_USER="mxa_mobile_user"
-DB_PASSWORD="${DB_PASSWORD:-ChangeMeInProduction123!}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+DEPLOY_REF="${DEPLOY_REF:-main}"
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then 
     echo "Please run as root or with sudo"
     exit 1
 fi
+
+if [ -z "$DB_PASSWORD" ]; then
+    echo "DB_PASSWORD must be set (export DB_PASSWORD=...)"
+    exit 1
+fi
+
+if [ -z "$MINIO_ROOT_PASSWORD" ]; then
+    echo "MINIO_ROOT_PASSWORD must be set (export MINIO_ROOT_PASSWORD=...)"
+    exit 1
+fi
+
+export DEBIAN_FRONTEND=noninteractive
 
 echo ""
 echo "Step 1: Installing Python and dependencies..."
@@ -82,7 +95,6 @@ echo "✓ MinIO data directory created"
 
 # Create application directory
 mkdir -p $PYTHON_DIR
-mkdir -p $PYTHON_DIR/logs
 chown -R celery:celery $PYTHON_DIR
 
 # The FastAPI service runs as www-data (per systemd unit); add www-data to celery group
@@ -144,15 +156,36 @@ echo ""
 echo "Step 6: Cloning repository..."
 cd $PYTHON_DIR
 if [ ! -d ".git" ]; then
-    sudo -u celery git clone "$REPO_URL" .
+    if [ -z "$(ls -A "$PYTHON_DIR")" ]; then
+        sudo -u celery git clone "$REPO_URL" .
+    else
+        sudo -u celery git init .
+        if ! sudo -u celery git remote get-url origin >/dev/null 2>&1; then
+            sudo -u celery git remote add origin "$REPO_URL"
+        else
+            sudo -u celery git remote set-url origin "$REPO_URL"
+        fi
+        sudo -u celery git fetch --all --tags
+        sudo -u celery git checkout "$DEPLOY_REF"
+        if sudo -u celery git rev-parse --verify --quiet "origin/$DEPLOY_REF" >/dev/null; then
+            sudo -u celery git reset --hard "origin/$DEPLOY_REF"
+        fi
+    fi
+    sudo -u celery git checkout "$DEPLOY_REF"
     echo "✓ Repository cloned"
 else
+    sudo -u celery git fetch --all --tags
+    sudo -u celery git checkout "$DEPLOY_REF"
+    if sudo -u celery git rev-parse --verify --quiet "origin/$DEPLOY_REF" >/dev/null; then
+        sudo -u celery git reset --hard "origin/$DEPLOY_REF"
+    fi
     echo "✓ Repository already exists"
 fi
 
 echo ""
 echo "Step 7: Setting up Python virtual environment..."
 cd $PYTHON_DIR/python-backend
+mkdir -p "$PYTHON_DIR/logs"
 if [ ! -d "venv" ]; then
     sudo -u celery python3.9 -m venv venv
     echo "✓ Virtual environment created"
@@ -234,8 +267,12 @@ fi
 
 echo ""
 echo "Step 11: Configuring firewall..."
-ufw allow from 192.168.1.66 to any port 8104
-ufw allow from 192.168.1.66 to any port 9000
+if command -v ufw &>/dev/null; then
+    ufw allow from 192.168.1.66 to any port 8104
+    ufw allow from 192.168.1.66 to any port 9000
+else
+    echo "⚠ ufw not installed, skipping firewall rules"
+fi
 
 echo "✓ Firewall configured"
 

@@ -7,7 +7,7 @@
 #   ./deploy_all.sh [--skip-setup] [--skip-keycloak] [--skip-db]
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -15,6 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKIP_SETUP=false
 SKIP_KEYCLOAK=false
 SKIP_DB=false
+DEPLOY_REF="${DEPLOY_REF:-main}"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -30,9 +31,13 @@ while [[ $# -gt 0 ]]; do
             SKIP_DB=true
             shift
             ;;
+        --ref)
+            DEPLOY_REF="$2"
+            shift 2
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--skip-setup] [--skip-keycloak] [--skip-db]"
+            echo "Usage: $0 [--skip-setup] [--skip-keycloak] [--skip-db] [--ref <branch-or-tag>]"
             exit 1
             ;;
     esac
@@ -46,6 +51,7 @@ echo "This script will deploy MxA Mobile across:"
 echo "  - SSO Server:         192.168.1.59"
 echo "  - Application Server: 192.168.1.66"
 echo "  - Python Server:      192.168.1.90"
+echo "  - Deployment ref:     $DEPLOY_REF"
 echo ""
 read -p "Continue? (yes/no): " CONFIRM
 
@@ -66,7 +72,9 @@ if [ "$SKIP_SETUP" = false ]; then
     read -p "Run SSO server setup? (yes/no): " RUN_SSO
     if [ "$RUN_SSO" = "yes" ]; then
         echo "Please run on 192.168.1.59:"
-        echo "  sudo bash $SCRIPT_DIR/1_setup_sso_server.sh"
+        echo "  export KEYCLOAK_ADMIN_PASSWORD='<strong-password>'"
+        echo "  export DEPLOY_REF='$DEPLOY_REF'"
+        echo "  sudo -E bash $SCRIPT_DIR/1_setup_sso_server.sh"
         read -p "Press Enter when complete..."
     fi
     
@@ -75,10 +83,12 @@ if [ "$SKIP_SETUP" = false ]; then
     read -p "Run application server setup? (yes/no): " RUN_APP
     if [ "$RUN_APP" = "yes" ]; then
         if [ "$(hostname -I | grep -c '192.168.1.66')" -gt 0 ]; then
-            sudo bash "$SCRIPT_DIR/2_setup_app_server.sh"
+            sudo -E DEPLOY_REF="$DEPLOY_REF" bash "$SCRIPT_DIR/2_setup_app_server.sh"
         else
             echo "Please run on 192.168.1.66:"
-            echo "  sudo bash $SCRIPT_DIR/2_setup_app_server.sh"
+            echo "  export DB_PASSWORD='<db-password>'"
+            echo "  export DEPLOY_REF='$DEPLOY_REF'"
+            echo "  sudo -E bash $SCRIPT_DIR/2_setup_app_server.sh"
             read -p "Press Enter when complete..."
         fi
     fi
@@ -88,10 +98,13 @@ if [ "$SKIP_SETUP" = false ]; then
     read -p "Run Python server setup? (yes/no): " RUN_PYTHON
     if [ "$RUN_PYTHON" = "yes" ]; then
         if [ "$(hostname -I | grep -c '192.168.1.90')" -gt 0 ]; then
-            sudo bash "$SCRIPT_DIR/3_setup_python_server.sh"
+            sudo -E DEPLOY_REF="$DEPLOY_REF" bash "$SCRIPT_DIR/3_setup_python_server.sh"
         else
             echo "Please run on 192.168.1.90:"
-            echo "  sudo bash $SCRIPT_DIR/3_setup_python_server.sh"
+            echo "  export DB_PASSWORD='<db-password>'"
+            echo "  export MINIO_ROOT_PASSWORD='<minio-password>'"
+            echo "  export DEPLOY_REF='$DEPLOY_REF'"
+            echo "  sudo -E bash $SCRIPT_DIR/3_setup_python_server.sh"
             read -p "Press Enter when complete..."
         fi
     fi
@@ -151,7 +164,10 @@ echo "=========================================="
 
 read -p "Deploy application code? (yes/no): " DEPLOY_APP
 if [ "$DEPLOY_APP" = "yes" ]; then
-    bash "$SCRIPT_DIR/deploy.sh"
+    echo "Run deploy.sh on each server with explicit target:"
+    echo "  App server:    sudo DEPLOY_REF='$DEPLOY_REF' bash $SCRIPT_DIR/deploy.sh --target app --ref '$DEPLOY_REF'"
+    echo "  Python server: sudo DEPLOY_REF='$DEPLOY_REF' bash $SCRIPT_DIR/deploy.sh --target python --ref '$DEPLOY_REF'"
+    read -p "Press Enter when complete..."
 fi
 
 # Step 5: Testing

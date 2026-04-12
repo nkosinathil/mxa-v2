@@ -13,7 +13,7 @@ This directory contains all scripts needed to deploy and manage the MxA Mobile a
 - Root/sudo access on all servers
 - Network connectivity between servers
 
-### Complete Deployment (Automated)
+### Complete Deployment (Guided)
 
 Run the master deployment script on any server with access to all three:
 
@@ -27,7 +27,7 @@ This script will guide you through:
 1. Setting up all three servers
 2. Configuring Keycloak
 3. Importing the database schema
-4. Deploying the application
+4. Deploying the application on app and python servers
 5. Running tests
 
 ### Manual Step-by-Step Deployment
@@ -36,12 +36,14 @@ This script will guide you through:
 
 On **SSO Server (192.168.1.59)**:
 ```bash
-sudo ./1_setup_sso_server.sh
+export KEYCLOAK_ADMIN_PASSWORD="StrongAdminPassword"
+sudo -E ./1_setup_sso_server.sh
 ```
 
 On **Application Server (192.168.1.66)**:
 ```bash
 export DB_PASSWORD="YourSecurePassword"
+export DEPLOY_REF="main"  # or release tag/branch
 sudo -E ./2_setup_app_server.sh
 ```
 
@@ -50,6 +52,7 @@ On **Python Server (192.168.1.90)**:
 export DB_PASSWORD="YourSecurePassword"
 export MINIO_ROOT_USER="minioadmin"
 export MINIO_ROOT_PASSWORD="YourMinIOPassword"
+export DEPLOY_REF="main"  # or release tag/branch
 sudo -E ./3_setup_python_server.sh
 ```
 
@@ -94,7 +97,12 @@ export DB_PASSWORD="YourSecurePassword"
 
 On **Application Server**:
 ```bash
-sudo ./deploy.sh
+sudo ./deploy.sh --target app --ref main
+```
+
+On **Python Server**:
+```bash
+sudo ./deploy.sh --target python --ref main
 ```
 
 #### Step 6: Test deployment
@@ -126,8 +134,8 @@ export DB_PASSWORD="YourSecurePassword"
 
 | Script | Purpose | Notes |
 |--------|---------|-------|
-| `deploy_all.sh` | Master deployment orchestration | Interactive, guides through all steps |
-| `deploy.sh` | Deploy/update application code | Existing script, backs up before deploy |
+| `deploy_all.sh` | Master deployment orchestration | Interactive guided workflow across hosts |
+| `deploy.sh` | Deploy/update application code | Run with explicit target (`app` or `python`) |
 
 ### Utility Scripts
 
@@ -188,7 +196,11 @@ export DB_PASSWORD="YourPassword"
 ### Update Application
 
 ```bash
-sudo ./deploy.sh
+# On app server
+sudo ./deploy.sh --target app --ref main
+
+# On python server
+sudo ./deploy.sh --target python --ref main
 ```
 
 ### Rollback

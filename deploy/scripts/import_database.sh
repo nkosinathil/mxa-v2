@@ -19,7 +19,7 @@ DB_HOST="${DB_HOST:-192.168.1.66}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-mxa_mobile}"
 DB_USER="${DB_USER:-mxa_mobile_user}"
-DB_PASSWORD="${DB_PASSWORD}"
+DB_PASSWORD="${DB_PASSWORD:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SCHEMA_FILE="$REPO_ROOT/database/schema.sql"
@@ -28,6 +28,11 @@ echo "Database: $DB_NAME@$DB_HOST:$DB_PORT"
 echo "User: $DB_USER"
 echo "Schema file: $SCHEMA_FILE"
 echo ""
+
+if [ -z "$DB_PASSWORD" ]; then
+    echo "DB_PASSWORD must be set (export DB_PASSWORD=...)"
+    exit 1
+fi
 
 # Check if schema file exists
 if [ ! -f "$SCHEMA_FILE" ]; then

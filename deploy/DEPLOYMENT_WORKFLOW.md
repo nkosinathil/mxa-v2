@@ -195,7 +195,7 @@ sudo nano /var/www/mxa-mobile-app/current/php-app/.env
 DB_PASSWORD=YourSecurePassword123!
 KEYCLOAK_CLIENT_ID=mxa-mobile-web
 KEYCLOAK_CLIENT_SECRET=<paste-client-secret-here>
-KEYCLOAK_SERVER=http://192.168.1.59:8080
+KEYCLOAK_SERVER_URL=http://192.168.1.59:8080
 KEYCLOAK_REALM=forensics
 PYTHON_API_URL=http://192.168.1.90:8104
 
@@ -214,7 +214,7 @@ DB_PASSWORD=YourSecurePassword123!
 MINIO_ENDPOINT=192.168.1.90:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=MinIOPassword123!
-KEYCLOAK_SERVER=http://192.168.1.59:8080
+KEYCLOAK_SERVER_URL=http://192.168.1.59:8080
 KEYCLOAK_REALM=forensics
 KEYCLOAK_CLIENT_ID=mxa-mobile-web
 KEYCLOAK_CLIENT_SECRET=<paste-client-secret-here>
