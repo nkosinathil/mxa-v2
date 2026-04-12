@@ -4,14 +4,11 @@
 # Injects shared configuration (Keycloak client secret, DB password, MinIO key)
 # into both the PHP and Python .env files after initial setup.
 #
-# Usage:
-#   KEYCLOAK_CLIENT_SECRET=<secret> DB_PASSWORD=<pass> ./update_env.sh
-#
-# Or interactively (prompts for each value if not set via environment):
-#   ./update_env.sh
+# Usage (non-interactive):
+#   KEYCLOAK_CLIENT_SECRET=<secret> DB_PASSWORD=<pass> MINIO_SECRET_KEY=<secret> ./update_env.sh
 #
 
-set -e
+set -euo pipefail
 
 echo "=========================================="
 echo "MxA Mobile - Update .env Files"
@@ -19,37 +16,14 @@ echo "=========================================="
 
 PHP_ENV="/var/www/mxa-mobile-app/current/php-app/.env"
 PYTHON_ENV="/opt/apps/mxa-mobile/python-backend/.env"
+KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET:-}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-}}"
+APP_KEY="${APP_KEY:-}"
 
-# ─────────────────────────────────────────────
-# Gather values (env var or prompt)
-# ─────────────────────────────────────────────
-
-get_value() {
-    local var_name="$1"
-    local prompt_text="$2"
-    local current="${!var_name}"
-
-    if [ -n "$current" ]; then
-        echo "$current"
-    else
-        read -rsp "$prompt_text: " val
-        echo ""
-        echo "$val"
-    fi
-}
-
-echo ""
-echo "Enter configuration values (press Enter to skip / keep existing)."
-echo ""
-
-KEYCLOAK_CLIENT_SECRET=$(get_value "KEYCLOAK_CLIENT_SECRET" "Keycloak Client Secret")
-DB_PASSWORD=$(get_value "DB_PASSWORD"              "Database Password")
-MINIO_SECRET_KEY=$(get_value "MINIO_SECRET_KEY"        "MinIO Secret Key")
-APP_KEY=$(get_value "APP_KEY"                  "PHP App Key (leave blank to auto-generate)")
-
-if [ -z "$APP_KEY" ]; then
-    APP_KEY=$(openssl rand -base64 32)
-    echo "Generated PHP APP_KEY."
+if [ -z "$KEYCLOAK_CLIENT_SECRET" ] && [ -z "$DB_PASSWORD" ] && [ -z "$MINIO_SECRET_KEY" ] && [ -z "$APP_KEY" ]; then
+    echo "At least one of KEYCLOAK_CLIENT_SECRET, DB_PASSWORD, MINIO_SECRET_KEY/MINIO_ROOT_PASSWORD, or APP_KEY must be set."
+    exit 1
 fi
 
 # ─────────────────────────────────────────────
@@ -84,9 +58,18 @@ if [ ! -f "$PHP_ENV" ]; then
     echo "✗ PHP .env not found: $PHP_ENV"
     echo "  Run 2_setup_app_server.sh first."
 else
+    PHP_APP_KEY="$APP_KEY"
+    if [ -z "$PHP_APP_KEY" ]; then
+        CURRENT_APP_KEY="$(sed -n 's/^APP_KEY=//p' "$PHP_ENV" | head -n 1)"
+        if [ -z "$CURRENT_APP_KEY" ]; then
+            PHP_APP_KEY="$(openssl rand -base64 32)"
+            echo "Generated PHP APP_KEY."
+        fi
+    fi
+
     upsert_env "$PHP_ENV" "KEYCLOAK_CLIENT_SECRET" "$KEYCLOAK_CLIENT_SECRET"
     upsert_env "$PHP_ENV" "DB_PASSWORD"            "$DB_PASSWORD"
-    upsert_env "$PHP_ENV" "APP_KEY"                "$APP_KEY"
+    upsert_env "$PHP_ENV" "APP_KEY"                "$PHP_APP_KEY"
 
     chown www-data:www-data "$PHP_ENV"
     chmod 600 "$PHP_ENV"

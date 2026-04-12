@@ -1,14 +1,17 @@
 # MxA Mobile - Quick Deployment Guide
 
-## 🚀 One-Command Deployment
+## 🚀 One-Command Deployment (Non-Interactive)
 
 ```bash
 cd /home/runner/work/mxa-v2/mxa-v2/deploy/scripts
 chmod +x *.sh
-./deploy_all.sh
+./deploy_all.sh \
+  --db-password "SecurePassword123!" \
+  --minio-root-password "MinIOPassword123!" \
+  --keycloak-admin-password "StrongAdminPassword123!"
 ```
 
-Follow the interactive prompts. The script handles everything!
+The script runs unattended over SSH.
 
 ---
 

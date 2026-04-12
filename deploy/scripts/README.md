@@ -13,22 +13,43 @@ This directory contains all scripts needed to deploy and manage the MxA Mobile a
 - Root/sudo access on all servers
 - Network connectivity between servers
 
-### Complete Deployment (Guided)
+### Complete Deployment (Non-Interactive)
 
-Run the master deployment script on any server with access to all three:
+Run the master deployment script on a control host with SSH access to all three servers:
 
 ```bash
 cd deploy/scripts
 chmod +x *.sh
-./deploy_all.sh
+./deploy_all.sh \
+  --db-password "YourSecurePassword" \
+  --minio-root-password "YourMinIOPassword" \
+  --keycloak-admin-password "YourKeycloakAdminPassword" \
+  --ref "main"
 ```
 
-This script will guide you through:
+This script will automatically run:
 1. Setting up all three servers
 2. Configuring Keycloak
 3. Importing the database schema
 4. Deploying the application on app and python servers
 5. Running tests
+
+Optional host overrides:
+```bash
+./deploy_all.sh \
+  --db-password "..." \
+  --minio-root-password "..." \
+  --keycloak-admin-password "..." \
+  --sso-host 10.0.0.10 \
+  --app-host 10.0.0.20 \
+  --python-host 10.0.0.30 \
+  --ssh-user root
+```
+
+Important non-interactive behavior:
+- `deploy_all.sh` runs without prompts and sets `FORCE_REIMPORT=true` during schema import.
+- Existing tables on the app DB host will be backed up and then dropped before reimport.
+- Use `--skip-db` when you do not want schema reimport.
 
 ### Manual Step-by-Step Deployment
 
@@ -134,7 +155,7 @@ export DB_PASSWORD="YourSecurePassword"
 
 | Script | Purpose | Notes |
 |--------|---------|-------|
-| `deploy_all.sh` | Master deployment orchestration | Interactive guided workflow across hosts |
+| `deploy_all.sh` | Master deployment orchestration | Fully non-interactive SSH orchestration |
 | `deploy.sh` | Deploy/update application code | Run with explicit target (`app` or `python`) |
 
 ### Utility Scripts

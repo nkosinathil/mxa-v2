@@ -8,7 +8,7 @@
 # - Database and user already created
 #
 
-set -e
+set -euo pipefail
 
 echo "=========================================="
 echo "MxA Mobile - Database Schema Import"
@@ -20,6 +20,7 @@ DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-mxa_mobile}"
 DB_USER="${DB_USER:-mxa_mobile_user}"
 DB_PASSWORD="${DB_PASSWORD:-}"
+FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SCHEMA_FILE="$REPO_ROOT/database/schema.sql"
@@ -61,9 +62,8 @@ TABLE_COUNT=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c
 
 if [ "$TABLE_COUNT" -gt 0 ]; then
     echo "⚠ Database already contains $TABLE_COUNT tables"
-    read -p "Do you want to drop existing tables and reimport? (yes/no): " CONFIRM
-    
-    if [ "$CONFIRM" != "yes" ]; then
+    if [ "$FORCE_REIMPORT" != "true" ]; then
+        echo "Set FORCE_REIMPORT=true to drop existing tables and reimport in non-interactive mode."
         echo "Import cancelled"
         exit 0
     fi

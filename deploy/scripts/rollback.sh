@@ -6,7 +6,7 @@
 # Usage: ./rollback.sh <backup_file.tar.gz>
 #
 
-set -e
+set -euo pipefail
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <backup_file.tar.gz>"
@@ -17,6 +17,7 @@ if [ -z "$1" ]; then
 fi
 
 BACKUP_FILE="$1"
+FORCE_ROLLBACK="${FORCE_ROLLBACK:-false}"
 
 if [ ! -f "$BACKUP_FILE" ]; then
     echo "Error: Backup file not found: $BACKUP_FILE"
@@ -35,11 +36,10 @@ echo "  - Restore database from backup"
 echo "  - Restore application code"
 echo "  - Restart services"
 echo ""
-read -p "Continue? (yes/no): " CONFIRM
-
-if [ "$CONFIRM" != "yes" ]; then
+if [ "$FORCE_ROLLBACK" != "true" ]; then
+    echo "Set FORCE_ROLLBACK=true to execute rollback in non-interactive mode."
     echo "Rollback cancelled"
-    exit 0
+    exit 1
 fi
 
 # Create temporary directory
@@ -70,7 +70,11 @@ echo "✓ Services stopped"
 # Restore database
 echo ""
 echo "Restoring database..."
-DB_PASSWORD="${DB_PASSWORD}"
+DB_PASSWORD="${DB_PASSWORD:-}"
+if [ -z "$DB_PASSWORD" ]; then
+    echo "DB_PASSWORD must be set (export DB_PASSWORD=...)"
+    exit 1
+fi
 export PGPASSWORD="$DB_PASSWORD"
 
 if [ -f "$BACKUP_DIR/database.sql.gz" ]; then
