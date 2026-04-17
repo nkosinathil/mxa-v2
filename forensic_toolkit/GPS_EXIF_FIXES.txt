@@ -1,0 +1,13 @@
+MxA GPS/EXIF fixes in this build
+
+- Automatic schema migration for attachment EXIF fields:
+  exif_make, exif_model, exif_datetime_original, has_gps
+- Existing databases are upgraded when opened
+- Existing image attachments are backfilled from original files when possible
+- Standalone phone photos remain supported through standalone media/file record creation
+- Map tab now triggers metadata backfill before querying geotagged records
+- Preview image cache size reduced to 640x640 for faster inline preview rendering
+
+Important:
+- Existing old cases can now be upgraded automatically, but GPS can only be populated if the original image still exists under the case folder/media path.
+- New processing runs will persist GPS and EXIF metadata directly to SQLite.

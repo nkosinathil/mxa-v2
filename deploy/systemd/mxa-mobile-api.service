@@ -1,0 +1,30 @@
+[Unit]
+Description=MxA Mobile FastAPI Service
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=celery
+Group=celery
+WorkingDirectory=/opt/apps/mxa-mobile/python-backend
+Environment="PATH=/opt/apps/mxa-mobile/python-backend/venv/bin"
+EnvironmentFile=/opt/apps/mxa-mobile/python-backend/.env
+
+ExecStart=/opt/apps/mxa-mobile/python-backend/venv/bin/uvicorn app.main:app \
+    --host 0.0.0.0 \
+    --port 8104 \
+    --workers 4 \
+    --log-level info
+
+Restart=always
+RestartSec=10
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+MxA schema migration update
+
+This build adds automatic SQLite schema migration with schema versioning.
+
+Highlights:
+- schema_version table added
+- automatic migration for older case databases
+- GPS fields ensured on attachments
+- preview path fields ensured on attachments
+- communication categorization/transcription fields ensured
+- reserved metadata fields added for future safe upgrades
+- indexes refreshed safely on open
+
+Existing cases:
+- opening an old case with this build upgrades the database schema automatically
+- no manual ALTER TABLE step should be required for the supported fields above

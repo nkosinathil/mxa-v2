@@ -1,0 +1,103 @@
+{
+  "categories": [
+    {
+      "name": "SCM",
+      "keywords": [
+        "quotation",
+        "quote",
+        "rfq",
+        "rfx",
+        "supplier",
+        "vendor",
+        "contract",
+        "tender",
+        "bid",
+        "procurement",
+        "purchase order",
+        "po",
+        "invoice",
+        "delivery",
+        "grn",
+        "variation order",
+        "bank details"
+      ],
+      "match_mode": "any",
+      "priority": 5
+    },
+    {
+      "name": "Quotations",
+      "keywords": [
+        "quotation",
+        "quote",
+        "rfq",
+        "rfx",
+        "three quotes",
+        "limited quotes",
+        "single quote"
+      ],
+      "match_mode": "any",
+      "priority": 6
+    },
+    {
+      "name": "Vendors",
+      "keywords": [
+        "supplier",
+        "vendor",
+        "contractor",
+        "beneficiary",
+        "preferred supplier",
+        "registered address"
+      ],
+      "match_mode": "any",
+      "priority": 7
+    },
+    {
+      "name": "Contracts",
+      "keywords": [
+        "contract",
+        "agreement",
+        "tender",
+        "award",
+        "adjudication",
+        "variation",
+        "extension",
+        "addendum"
+      ],
+      "match_mode": "any",
+      "priority": 8
+    },
+    {
+      "name": "Logistics",
+      "keywords": [
+        "delivery",
+        "shipment",
+        "stock",
+        "goods received",
+        "grn",
+        "pod",
+        "proof of delivery",
+        "delivery note"
+      ],
+      "match_mode": "any",
+      "priority": 9
+    },
+    {
+      "name": "Fraud & Collusion",
+      "keywords": [
+        "kickback",
+        "bribe",
+        "collusion",
+        "bid rigging",
+        "cover pricing",
+        "cover bid",
+        "conflict of interest",
+        "split order",
+        "single supplier",
+        "sole source",
+        "bank detail change"
+      ],
+      "match_mode": "any",
+      "priority": 10
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "categories": [
+    {
+      "name": "Energy / Utilities",
+      "keywords": [
+        "transformer",
+        "substation",
+        "meter",
+        "prepaid",
+        "token",
+        "sts",
+        "kwh",
+        "kva",
+        "illegal connection",
+        "city power",
+        "eskom",
+        "municipality",
+        "load shedding",
+        "outage",
+        "power line",
+        "feeder",
+        "switchgear",
+        "pole",
+        "pylon"
+      ],
+      "match_mode": "any",
+      "priority": 5
+    },
+    {
+      "name": "Metering",
+      "keywords": [
+        "meter",
+        "prepaid",
+        "token",
+        "sts",
+        "meter number",
+        "serial",
+        "active energy",
+        "reactive energy",
+        "single phase",
+        "three phase"
+      ],
+      "match_mode": "any",
+      "priority": 6
+    },
+    {
+      "name": "Illegal Connections",
+      "keywords": [
+        "illegal connection",
+        "bypass",
+        "bridging",
+        "hook",
+        "jumpers",
+        "tamper"
+      ],
+      "match_mode": "any",
+      "priority": 7
+    },
+    {
+      "name": "Infrastructure",
+      "keywords": [
+        "transformer",
+        "substation",
+        "switchgear",
+        "feeder",
+        "pole",
+        "pylon",
+        "distribution board",
+        "overhead line",
+        "mv cable",
+        "lv cable"
+      ],
+      "match_mode": "any",
+      "priority": 8
+    },
+    {
+      "name": "Operations",
+      "keywords": [
+        "outage",
+        "load shedding",
+        "trip",
+        "earth fault",
+        "fault",
+        "isolation",
+        "reclose",
+        "work order",
+        "job card",
+        "call-out",
+        "disconnection",
+        "reconnection"
+      ],
+      "match_mode": "any",
+      "priority": 9
+    }
+  ]
+}

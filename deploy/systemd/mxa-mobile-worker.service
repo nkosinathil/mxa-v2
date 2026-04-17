@@ -1,0 +1,35 @@
+[Unit]
+Description=MxA Mobile Celery Worker
+After=network.target redis.service postgresql.service
+
+[Service]
+Type=forking
+User=celery
+Group=celery
+WorkingDirectory=/opt/apps/mxa-mobile/python-backend
+Environment="PATH=/opt/apps/mxa-mobile/python-backend/venv/bin"
+EnvironmentFile=/opt/apps/mxa-mobile/python-backend/.env
+
+ExecStart=/opt/apps/mxa-mobile/python-backend/venv/bin/celery \
+    -A app.tasks.celery_app worker \
+    --loglevel=info \
+    --concurrency=4 \
+    --queues=mxa_mobile \
+    --logfile=/opt/apps/mxa-mobile/logs/celery-worker.log \
+    --pidfile=/var/run/celery/mxa-mobile-worker.pid
+
+ExecStop=/bin/kill -s TERM $MAINPID
+
+Restart=always
+RestartSec=10
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStopSec=600
+
+[Install]
+WantedBy=multi-user.target
