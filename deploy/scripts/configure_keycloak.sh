@@ -50,6 +50,32 @@ get_admin_token() {
     echo "$TOKEN"
 }
 
+# Ensure client settings match the PHP app auth flow.
+# The app uses a confidential server-side authorization code flow (no PKCE).
+reconcile_client_config() {
+    local client_uuid="$1"
+    local client_payload
+
+    client_payload=$(curl -s "$KEYCLOAK_URL/admin/realms/$REALM/clients/$client_uuid" \
+        -H "Authorization: Bearer $ADMIN_TOKEN" | jq \
+        --arg redirect_uri "$REDIRECT_URI" \
+        --arg web_origin "$WEB_ORIGINS" \
+        '.redirectUris = [$redirect_uri]
+        | .webOrigins = [$web_origin]
+        | .publicClient = false
+        | .standardFlowEnabled = true
+        | .implicitFlowEnabled = false
+        | .directAccessGrantsEnabled = true
+        | .serviceAccountsEnabled = false
+        | .authorizationServicesEnabled = false
+        | .attributes = ((.attributes // {}) | del(."pkce.code.challenge.method"))')
+
+    curl -s -X PUT "$KEYCLOAK_URL/admin/realms/$REALM/clients/$client_uuid" \
+        -H "Authorization: Bearer $ADMIN_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$client_payload" >/dev/null
+}
+
 echo "Step 1: Getting admin token..."
 ADMIN_TOKEN=$(get_admin_token)
 echo "✓ Admin token obtained"
@@ -105,10 +131,7 @@ else
             \"serviceAccountsEnabled\": false,
             \"authorizationServicesEnabled\": false,
             \"redirectUris\": [\"$REDIRECT_URI\"],
-            \"webOrigins\": [\"$WEB_ORIGINS\"],
-            \"attributes\": {
-                \"pkce.code.challenge.method\": \"S256\"
-            }
+            \"webOrigins\": [\"$WEB_ORIGINS\"]
         }" | grep -i "^Location:" | tr -d '\r' | awk '{print $2}')
     
     CLIENT_UUID=$(basename "$LOCATION")
@@ -119,6 +142,17 @@ else
     fi
     
     echo "✓ Client '$CLIENT_ID' created (ID: $CLIENT_UUID)"
+fi
+
+echo "Step 3b: Reconciling client auth settings..."
+reconcile_client_config "$CLIENT_UUID"
+
+PKCE_METHOD=$(curl -s "$KEYCLOAK_URL/admin/realms/$REALM/clients/$CLIENT_UUID" \
+    -H "Authorization: Bearer $ADMIN_TOKEN" | jq -r '.attributes["pkce.code.challenge.method"] // empty')
+if [ -z "$PKCE_METHOD" ]; then
+    echo "✓ PKCE requirement removed for '$CLIENT_ID' (compatible with current PHP flow)"
+else
+    echo "⚠ PKCE requirement still set to '$PKCE_METHOD'"
 fi
 
 echo ""
