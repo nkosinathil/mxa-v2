@@ -199,8 +199,8 @@ fi
 
 if [ "$SKIP_DEPLOY" = false ]; then
     echo "Phase 4: application deployment"
-    run_remote_script "$APP_HOST" "deploy/scripts/deploy.sh" "" "--target app"
-    run_remote_script "$PYTHON_HOST" "deploy/scripts/deploy.sh" "" "--target python"
+    run_remote_script "$APP_HOST" "deploy/scripts/deploy.sh" "" "--target app --app-server-ip '$q_app_host'"
+    run_remote_script "$PYTHON_HOST" "deploy/scripts/deploy.sh" "" "--target python --app-server-ip '$q_app_host'"
 fi
 
 if [ "$SKIP_TESTS" = false ]; then

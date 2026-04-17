@@ -17,9 +17,10 @@ BACKUP_DIR="/var/backups/mxa-mobile"
 DEPLOY_REF="${DEPLOY_REF:-main}"
 TARGET="${TARGET:-auto}"
 SKIP_BACKUP=false
+APP_SERVER_IP="${APP_SERVER_IP:-192.168.1.66}"
 
 usage() {
-    echo "Usage: $0 --target app|python|all [--ref <branch-or-tag>] [--repo-url <url>] [--skip-backup]"
+    echo "Usage: $0 --target app|python|all [--ref <branch-or-tag>] [--repo-url <url>] [--app-server-ip <ip>] [--skip-backup]"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -34,6 +35,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --repo-url)
             REPO_URL="$2"
+            shift 2
+            ;;
+        --app-server-ip)
+            APP_SERVER_IP="$2"
             shift 2
             ;;
         --skip-backup)
@@ -51,6 +56,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ -z "$APP_SERVER_IP" ]; then
+    echo "APP_SERVER_IP cannot be empty"
+    exit 1
+fi
 
 if [ "$EUID" -ne 0 ]; then
     echo "Please run as root or with sudo"
@@ -219,6 +229,10 @@ deploy_python() {
         echo "Created Python .env from template; update secrets before go-live."
     fi
 
+    mkdir -p "$PYTHON_DIR/logs"
+    chown -R celery:celery "$PYTHON_DIR/logs"
+    chmod -R 775 "$PYTHON_DIR/logs"
+
     if [ -f "$PYTHON_DIR/deploy/systemd/mxa-mobile-api.service" ]; then
         cp "$PYTHON_DIR/deploy/systemd/mxa-mobile-api.service" /etc/systemd/system/
     fi
@@ -232,10 +246,40 @@ deploy_python() {
 
     run_as "celery" bash -lc "source '$PYTHON_DIR/python-backend/venv/bin/activate' && pip install --upgrade pip && pip install -r '$PYTHON_DIR/python-backend/requirements.txt'"
 
+    mkdir -p "$PYTHON_DIR/logs"
     chown -R celery:celery "$PYTHON_DIR"
     chmod -R 750 "$PYTHON_DIR"
 
+    # Ensure redis is reachable over LAN by app server.
+    redis_ip="$(hostname -I | awk '{print $1}')"
+    [ -n "$redis_ip" ] || redis_ip="192.168.1.90"
+    for redis_conf in /etc/redis/redis.conf /etc/redis/redis-server.conf; do
+        if [ -f "$redis_conf" ]; then
+            if grep -q '^[#[:space:]]*bind' "$redis_conf"; then
+                sed -i "s/^[#[:space:]]*bind .*/bind 127.0.0.1 $redis_ip/" "$redis_conf"
+            else
+                echo "bind 127.0.0.1 $redis_ip" >> "$redis_conf"
+            fi
+            if grep -q '^[#[:space:]]*protected-mode' "$redis_conf"; then
+                sed -i "s/^[#[:space:]]*protected-mode .*/protected-mode yes/" "$redis_conf"
+            else
+                echo "protected-mode yes" >> "$redis_conf"
+            fi
+            break
+        fi
+    done
+
+    if command -v ufw >/dev/null 2>&1; then
+        ufw allow from "$APP_SERVER_IP" to any port 8104 || true
+        ufw allow from "$APP_SERVER_IP" to any port 9000 || true
+        ufw allow from "$APP_SERVER_IP" to any port 6379 || true
+    fi
+
     systemctl daemon-reload
+    systemctl enable redis-server
+    systemctl enable mxa-mobile-api
+    systemctl enable mxa-mobile-worker
+    restart_or_start redis-server
     restart_or_start mxa-mobile-api
     restart_or_start mxa-mobile-worker
     echo "✓ Python services restarted"

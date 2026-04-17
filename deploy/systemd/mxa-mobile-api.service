@@ -4,8 +4,8 @@ After=network.target postgresql.service redis.service
 
 [Service]
 Type=simple
-User=www-data
-Group=www-data
+User=celery
+Group=celery
 WorkingDirectory=/opt/apps/mxa-mobile/python-backend
 Environment="PATH=/opt/apps/mxa-mobile/python-backend/venv/bin"
 EnvironmentFile=/opt/apps/mxa-mobile/python-backend/.env

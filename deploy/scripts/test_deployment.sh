@@ -98,12 +98,15 @@ test_minio() {
 # Test Redis
 test_redis() {
     echo -n "Testing Redis... "
+    local redis_host redis_port
+    redis_host="$(echo "$PYTHON_URL" | sed -E 's#^https?://([^:/]+).*$#\1#')"
+    redis_port="${REDIS_PORT:-6379}"
     
-    if timeout 2 bash -c "cat < /dev/null > /dev/tcp/192.168.1.90/6379" 2>/dev/null; then
-        echo "✓ PASS (port 6379 reachable)"
+    if timeout 2 bash -c "cat < /dev/null > /dev/tcp/$redis_host/$redis_port" 2>/dev/null; then
+        echo "✓ PASS (port $redis_port reachable)"
         PASSED=$((PASSED + 1))
     else
-        echo "✗ FAIL (port 6379 not reachable)"
+        echo "✗ FAIL (port $redis_port not reachable)"
         FAILED=$((FAILED + 1))
     fi
 
@@ -141,18 +144,18 @@ test_service() {
 }
 
 echo ""
-echo "=== Testing SSO Server (192.168.1.59) ==="
+echo "=== Testing SSO Server ==="
 test_endpoint "Keycloak OIDC discovery" "$SSO_URL/realms/master/.well-known/openid-configuration"
 
 echo ""
-echo "=== Testing Application Server (192.168.1.66) ==="
+echo "=== Testing Application Server ==="
 test_endpoint "PHP Web Application" "$APP_URL" "200"
 test_postgresql
 test_service "apache2" "192.168.1.66"
 test_service "postgresql" "192.168.1.66"
 
 echo ""
-echo "=== Testing Python Server (192.168.1.90) ==="
+echo "=== Testing Python Server ==="
 test_endpoint "FastAPI Health" "$PYTHON_URL/health"
 test_endpoint "FastAPI Readiness" "$PYTHON_URL/health/ready"
 test_minio
