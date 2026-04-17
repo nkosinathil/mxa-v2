@@ -47,7 +47,7 @@ export DEBIAN_FRONTEND=noninteractive
 echo ""
 echo "Step 1: Installing Python and dependencies..."
 apt-get update
-apt-get install -y python3.9 python3.9-venv python3-pip redis-server \
+apt-get install -y python3 python3-venv python3-pip redis-server \
     tesseract-ocr tesseract-ocr-eng wget curl
 
 echo "✓ Python and base dependencies installed"
@@ -187,7 +187,7 @@ echo "Step 7: Setting up Python virtual environment..."
 cd $PYTHON_DIR/python-backend
 mkdir -p "$PYTHON_DIR/logs"
 if [ ! -d "venv" ]; then
-    sudo -u celery python3.9 -m venv venv
+    sudo -u celery python3 -m venv venv
     echo "✓ Virtual environment created"
 fi
 

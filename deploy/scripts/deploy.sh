@@ -196,7 +196,7 @@ deploy_python() {
     fi
 
     if [ ! -d "$PYTHON_DIR/python-backend/venv" ]; then
-        run_as "celery" python3.9 -m venv "$PYTHON_DIR/python-backend/venv"
+        run_as "celery" python3 -m venv "$PYTHON_DIR/python-backend/venv"
     fi
 
     run_as "celery" bash -lc "source '$PYTHON_DIR/python-backend/venv/bin/activate' && pip install --upgrade pip && pip install -r '$PYTHON_DIR/python-backend/requirements.txt'"
