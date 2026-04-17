@@ -38,14 +38,17 @@ upsert_env() {
         return
     fi
 
-    # Escape special characters in value for sed
-    local escaped
-    escaped=$(printf '%s\n' "$value" | sed 's/[\/&]/\\&/g')
+    # Write values as double-quoted dotenv strings so special chars
+    # like #, !, and spaces are preserved exactly.
+    local quoted_value escaped_value replacement
+    escaped_value=$(printf '%s' "$value" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\$/\\$/g')
+    quoted_value="\"$escaped_value\""
+    replacement=$(printf '%s' "${key}=${quoted_value}" | sed 's/[&|]/\\&/g')
 
     if grep -q "^${key}=" "$file" 2>/dev/null; then
-        sed -i "s|^${key}=.*|${key}=${escaped}|" "$file"
+        sed -i "s|^${key}=.*|${replacement}|" "$file"
     else
-        echo "${key}=${escaped}" >> "$file"
+        echo "${key}=${quoted_value}" >> "$file"
     fi
 }
 

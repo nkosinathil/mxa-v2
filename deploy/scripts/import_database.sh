@@ -21,6 +21,7 @@ DB_NAME="${DB_NAME:-mxa_mobile}"
 DB_USER="${DB_USER:-mxa_mobile_user}"
 DB_PASSWORD="${DB_PASSWORD:-}"
 FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
+BACKUP_FILE=""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SCHEMA_FILE="$REPO_ROOT/database/schema.sql"
@@ -145,7 +146,7 @@ echo ""
 echo "Database: $DB_NAME@$DB_HOST"
 echo "Tables: $TABLE_COUNT"
 echo ""
-if [ ! -z "$BACKUP_FILE" ]; then
+if [ -n "$BACKUP_FILE" ]; then
     echo "Backup: $BACKUP_FILE"
     echo ""
 fi
