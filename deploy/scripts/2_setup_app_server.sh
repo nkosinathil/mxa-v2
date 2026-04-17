@@ -60,6 +60,31 @@ systemctl enable postgresql
 # Wait for PostgreSQL to be ready
 sleep 5
 
+# Configure PostgreSQL network/auth for local app and python server access.
+for PG_MAIN in /etc/postgresql/*/main; do
+    [ -d "$PG_MAIN" ] || continue
+    POSTGRESQL_CONF="$PG_MAIN/postgresql.conf"
+    PG_HBA_CONF="$PG_MAIN/pg_hba.conf"
+
+    if [ -f "$POSTGRESQL_CONF" ]; then
+        if grep -q "^[#[:space:]]*listen_addresses" "$POSTGRESQL_CONF"; then
+            sed -i "s/^[#[:space:]]*listen_addresses.*/listen_addresses = '*'/" "$POSTGRESQL_CONF"
+        else
+            echo "listen_addresses = '*'" >> "$POSTGRESQL_CONF"
+        fi
+    fi
+
+    if [ -f "$PG_HBA_CONF" ]; then
+        grep -qE "^[[:space:]]*host[[:space:]]+$DB_NAME[[:space:]]+$DB_USER[[:space:]]+127\\.0\\.0\\.1/32" "$PG_HBA_CONF" || \
+            echo "host    $DB_NAME    $DB_USER    127.0.0.1/32    md5" >> "$PG_HBA_CONF"
+        grep -qE "^[[:space:]]*host[[:space:]]+$DB_NAME[[:space:]]+$DB_USER[[:space:]]+192\\.168\\.1\\.66/32" "$PG_HBA_CONF" || \
+            echo "host    $DB_NAME    $DB_USER    192.168.1.66/32    md5" >> "$PG_HBA_CONF"
+        grep -qE "^[[:space:]]*host[[:space:]]+$DB_NAME[[:space:]]+$DB_USER[[:space:]]+192\\.168\\.1\\.90/32" "$PG_HBA_CONF" || \
+            echo "host    $DB_NAME    $DB_USER    192.168.1.90/32    md5" >> "$PG_HBA_CONF"
+    fi
+done
+systemctl restart postgresql
+
 # Create database and user
 sudo -u postgres psql <<EOF
 -- Create or update user

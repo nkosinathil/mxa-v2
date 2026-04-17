@@ -182,6 +182,7 @@ deploy_app() {
     fi
 
     run_as "www-data" composer --working-dir="$APP_DIR/current/php-app" install --no-dev --optimize-autoloader
+    run_as "www-data" composer --working-dir="$APP_DIR/current/php-app" dump-autoload -o
 
     mkdir -p "$APP_DIR/current/php-app/storage/logs"
     chown -R www-data:www-data "$APP_DIR/current"
@@ -216,6 +217,13 @@ deploy_python() {
         chown celery:celery "$PYTHON_DIR/python-backend/.env"
         chmod 600 "$PYTHON_DIR/python-backend/.env"
         echo "Created Python .env from template; update secrets before go-live."
+    fi
+
+    if [ -f "$PYTHON_DIR/deploy/systemd/mxa-mobile-api.service" ]; then
+        cp "$PYTHON_DIR/deploy/systemd/mxa-mobile-api.service" /etc/systemd/system/
+    fi
+    if [ -f "$PYTHON_DIR/deploy/systemd/mxa-mobile-worker.service" ]; then
+        cp "$PYTHON_DIR/deploy/systemd/mxa-mobile-worker.service" /etc/systemd/system/
     fi
 
     if [ ! -d "$PYTHON_DIR/python-backend/venv" ]; then
