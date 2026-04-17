@@ -175,6 +175,10 @@ TABLE_COUNT=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c
     "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'" 2>/dev/null | tr -d ' ')
 unset PGPASSWORD
 
+if ! [[ "${TABLE_COUNT:-}" =~ ^[0-9]+$ ]]; then
+    TABLE_COUNT=0
+fi
+
 if [ "$TABLE_COUNT" -gt 10 ]; then
     echo "✓ PASS ($TABLE_COUNT tables)"
     PASSED=$((PASSED + 1))
