@@ -48,13 +48,13 @@ test_endpoint() {
     
     if [ "$http_code" == "$expected_code" ]; then
         echo "✓ PASS (HTTP $http_code)"
-        ((PASSED++))
-        return 0
+        PASSED=$((PASSED + 1))
     else
         echo "✗ FAIL (HTTP $http_code, expected $expected_code)"
-        ((FAILED++))
-        return 1
+        FAILED=$((FAILED + 1))
     fi
+
+    return 0
 }
 
 # Test PostgreSQL
@@ -64,15 +64,15 @@ test_postgresql() {
     export PGPASSWORD="$DB_PASSWORD"
     if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1" &>/dev/null; then
         echo "✓ PASS"
-        ((PASSED++))
+        PASSED=$((PASSED + 1))
         unset PGPASSWORD
-        return 0
     else
         echo "✗ FAIL"
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
         unset PGPASSWORD
-        return 1
     fi
+
+    return 0
 }
 
 # Test MinIO
@@ -86,13 +86,13 @@ test_minio() {
     
     if [ "$http_code" == "200" ]; then
         echo "✓ PASS"
-        ((PASSED++))
-        return 0
+        PASSED=$((PASSED + 1))
     else
         echo "✗ FAIL (HTTP $http_code)"
-        ((FAILED++))
-        return 1
+        FAILED=$((FAILED + 1))
     fi
+
+    return 0
 }
 
 # Test Redis
@@ -101,13 +101,13 @@ test_redis() {
     
     if timeout 2 bash -c "cat < /dev/null > /dev/tcp/192.168.1.90/6379" 2>/dev/null; then
         echo "✓ PASS (port 6379 reachable)"
-        ((PASSED++))
-        return 0
+        PASSED=$((PASSED + 1))
     else
         echo "✗ FAIL (port 6379 not reachable)"
-        ((FAILED++))
-        return 1
+        FAILED=$((FAILED + 1))
     fi
+
+    return 0
 }
 
 # Test systemd service on an explicit host.
@@ -121,23 +121,23 @@ test_service() {
     if [ "$host" = "localhost" ] || [ "$host" = "127.0.0.1" ] || [ "$host" = "$CURRENT_HOST_IP" ]; then
         if systemctl is-active --quiet "$service" 2>/dev/null; then
             echo "✓ PASS"
-            ((PASSED++))
+            PASSED=$((PASSED + 1))
             return 0
         fi
         echo "✗ FAIL"
-        ((FAILED++))
-        return 1
+        FAILED=$((FAILED + 1))
+        return 0
     fi
 
     if ssh -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=no "$host" "systemctl is-active --quiet $service" 2>/dev/null; then
         echo "✓ PASS"
-        ((PASSED++))
+        PASSED=$((PASSED + 1))
         return 0
     fi
 
     echo "✗ FAIL (remote check failed; ensure SSH access)"
-    ((FAILED++))
-    return 1
+    FAILED=$((FAILED + 1))
+    return 0
 }
 
 echo ""
@@ -177,10 +177,10 @@ unset PGPASSWORD
 
 if [ "$TABLE_COUNT" -gt 10 ]; then
     echo "✓ PASS ($TABLE_COUNT tables)"
-    ((PASSED++))
+    PASSED=$((PASSED + 1))
 else
     echo "✗ FAIL ($TABLE_COUNT tables, expected > 10)"
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
 fi
 
 echo ""
@@ -188,19 +188,19 @@ echo "=== Testing Network Connectivity ==="
 echo -n "Testing App Server -> Python Server... "
 if curl -f -s --max-time 5 "$PYTHON_URL/health" > /dev/null 2>&1; then
     echo "✓ PASS"
-    ((PASSED++))
+    PASSED=$((PASSED + 1))
 else
     echo "✗ FAIL"
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
 fi
 
 echo -n "Testing App Server -> SSO Server... "
 if curl -f -s --max-time 5 "$SSO_URL/realms/master/.well-known/openid-configuration" > /dev/null 2>&1; then
     echo "✓ PASS"
-    ((PASSED++))
+    PASSED=$((PASSED + 1))
 else
     echo "✗ FAIL"
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
 fi
 
 echo ""
