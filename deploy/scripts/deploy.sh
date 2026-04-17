@@ -151,6 +151,20 @@ restart_or_start() {
     fi
 }
 
+ensure_system_user() {
+    local user="$1"
+    local shell="${2:-/usr/sbin/nologin}"
+    local primary_group="${3:-$user}"
+
+    if ! getent group "$primary_group" >/dev/null 2>&1; then
+        groupadd --system "$primary_group"
+    fi
+
+    if ! id "$user" >/dev/null 2>&1; then
+        useradd --system --create-home --gid "$primary_group" --shell "$shell" "$user"
+    fi
+}
+
 deploy_app() {
     echo ""
     echo "Deploying PHP application..."
@@ -182,8 +196,17 @@ deploy_app() {
 deploy_python() {
     echo ""
     echo "Deploying Python application..."
+
+    ensure_system_user "celery" "/bin/bash" "celery"
+    ensure_system_user "minio" "/usr/sbin/nologin" "minio"
+    if id "www-data" >/dev/null 2>&1; then
+        usermod -aG celery www-data || true
+    fi
+
     mkdir -p "$PYTHON_DIR"
     chown -R celery:celery "$PYTHON_DIR"
+    mkdir -p /var/run/celery
+    chown celery:celery /var/run/celery
 
     create_backup "python-app" "$PYTHON_DIR"
     sync_repo "$PYTHON_DIR" "celery"
