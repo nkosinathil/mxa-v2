@@ -14,7 +14,7 @@ ExecStart=/opt/apps/mxa-mobile/python-backend/venv/bin/celery \
     -A app.tasks.celery_app worker \
     --loglevel=info \
     --concurrency=4 \
-    --queue=mxa_mobile \
+    --queues=mxa_mobile \
     --logfile=/opt/apps/mxa-mobile/logs/celery-worker.log \
     --pidfile=/var/run/celery/mxa-mobile-worker.pid
 
