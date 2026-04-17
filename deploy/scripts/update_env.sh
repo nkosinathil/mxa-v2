@@ -5,7 +5,7 @@
 # into both the PHP and Python .env files after initial setup.
 #
 # Usage (non-interactive):
-#   KEYCLOAK_CLIENT_SECRET=<secret> DB_PASSWORD=<pass> MINIO_SECRET_KEY=<secret> ./update_env.sh
+#   KEYCLOAK_CLIENT_SECRET=<secret> DB_PASSWORD=<pass> MINIO_SECRET_KEY=<secret> APP_BASE_URL=<url> ./update_env.sh
 #
 
 set -euo pipefail
@@ -20,9 +20,15 @@ KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET:-}"
 DB_PASSWORD="${DB_PASSWORD:-}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-}}"
 APP_KEY="${APP_KEY:-}"
+APP_BASE_URL="${APP_BASE_URL:-}"
+KEYCLOAK_REDIRECT_URI="${KEYCLOAK_REDIRECT_URI:-}"
 
-if [ -z "$KEYCLOAK_CLIENT_SECRET" ] && [ -z "$DB_PASSWORD" ] && [ -z "$MINIO_SECRET_KEY" ] && [ -z "$APP_KEY" ]; then
-    echo "At least one of KEYCLOAK_CLIENT_SECRET, DB_PASSWORD, MINIO_SECRET_KEY/MINIO_ROOT_PASSWORD, or APP_KEY must be set."
+if [ -n "$APP_BASE_URL" ] && [ -z "$KEYCLOAK_REDIRECT_URI" ]; then
+    KEYCLOAK_REDIRECT_URI="${APP_BASE_URL%/}/auth/callback"
+fi
+
+if [ -z "$KEYCLOAK_CLIENT_SECRET" ] && [ -z "$DB_PASSWORD" ] && [ -z "$MINIO_SECRET_KEY" ] && [ -z "$APP_KEY" ] && [ -z "$APP_BASE_URL" ] && [ -z "$KEYCLOAK_REDIRECT_URI" ]; then
+    echo "At least one configurable value must be set (for example KEYCLOAK_CLIENT_SECRET, DB_PASSWORD, APP_BASE_URL)."
     exit 1
 fi
 
@@ -73,6 +79,8 @@ else
     upsert_env "$PHP_ENV" "KEYCLOAK_CLIENT_SECRET" "$KEYCLOAK_CLIENT_SECRET"
     upsert_env "$PHP_ENV" "DB_PASSWORD"            "$DB_PASSWORD"
     upsert_env "$PHP_ENV" "APP_KEY"                "$PHP_APP_KEY"
+    upsert_env "$PHP_ENV" "APP_URL"                "$APP_BASE_URL"
+    upsert_env "$PHP_ENV" "KEYCLOAK_REDIRECT_URI"  "$KEYCLOAK_REDIRECT_URI"
 
     chown www-data:www-data "$PHP_ENV"
     chmod 600 "$PHP_ENV"

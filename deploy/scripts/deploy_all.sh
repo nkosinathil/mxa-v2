@@ -14,6 +14,7 @@ APP_HOST="${APP_HOST:-192.168.1.66}"
 PYTHON_HOST="${PYTHON_HOST:-192.168.1.90}"
 SSH_USER="${SSH_USER:-root}"
 SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=10)
+APP_BASE_URL="${APP_BASE_URL:-http://$APP_HOST}"
 
 SKIP_SETUP=false
 SKIP_KEYCLOAK=false
@@ -51,6 +52,7 @@ Optional:
   --sso-host <host>               SSO host/IP (default: 192.168.1.59)
   --app-host <host>               App host/IP (default: 192.168.1.66)
   --python-host <host>            Python host/IP (default: 192.168.1.90)
+  --app-base-url <url>            Public app base URL used for Keycloak redirect/origin (default: http://app-host)
   --keycloak-hostname <host>      Keycloak external hostname (default: sso-host)
   --keycloak-client-secret <sec>  Skip Keycloak config and use provided client secret for .env updates
   --minio-secret-key <sec>        Secret written to Python .env (defaults to --minio-root-password)
@@ -75,6 +77,7 @@ while [[ $# -gt 0 ]]; do
         --sso-host) SSO_HOST="$2"; shift 2 ;;
         --app-host) APP_HOST="$2"; shift 2 ;;
         --python-host) PYTHON_HOST="$2"; shift 2 ;;
+        --app-base-url) APP_BASE_URL="$2"; shift 2 ;;
         --db-password) DB_PASSWORD="$2"; shift 2 ;;
         --minio-root-password) MINIO_ROOT_PASSWORD="$2"; shift 2 ;;
         --keycloak-admin-password) KEYCLOAK_ADMIN_PASSWORD="$2"; shift 2 ;;
@@ -105,6 +108,7 @@ q_keycloak_hostname="$(quote_sq "$KEYCLOAK_HOSTNAME")"
 q_sso_host="$(quote_sq "$SSO_HOST")"
 q_app_host="$(quote_sq "$APP_HOST")"
 q_python_host="$(quote_sq "$PYTHON_HOST")"
+q_app_base_url="$(quote_sq "$APP_BASE_URL")"
 q_minio_secret_key="$(quote_sq "$MINIO_SECRET_KEY")"
 
 echo "=========================================="
@@ -116,6 +120,7 @@ echo "Python Host:     $PYTHON_HOST"
 echo "SSH User:        $SSH_USER"
 echo "Deploy Ref:      $DEPLOY_REF"
 echo "Repo URL:        $REPO_URL"
+echo "App Base URL:    $APP_BASE_URL"
 echo ""
 
 ssh_host() {
@@ -171,7 +176,7 @@ if [ "$SKIP_KEYCLOAK" = false ]; then
     echo "Phase 2: Keycloak configuration"
     require_tools_on_host "$SSO_HOST" awk sed tee jq
     sync_repo_on_host "$SSO_HOST"
-    ssh_host "$SSO_HOST" "set -euo pipefail; cd ~/mxa-v2; chmod +x deploy/scripts/*.sh; export KEYCLOAK_ADMIN_PASSWORD='$q_keycloak_admin_password' KEYCLOAK_URL='http://$q_sso_host:8080'; ./deploy/scripts/configure_keycloak.sh | tee /tmp/mxa_keycloak_config.log"
+    ssh_host "$SSO_HOST" "set -euo pipefail; cd ~/mxa-v2; chmod +x deploy/scripts/*.sh; export KEYCLOAK_ADMIN_PASSWORD='$q_keycloak_admin_password' KEYCLOAK_URL='http://$q_sso_host:8080' APP_BASE_URL='$q_app_base_url'; ./deploy/scripts/configure_keycloak.sh | tee /tmp/mxa_keycloak_config.log"
 
     KEYCLOAK_CLIENT_SECRET="$(ssh_host "$SSO_HOST" "set -euo pipefail; awk -F': ' '/Client Secret:/ {print \$2}' /tmp/mxa_keycloak_config.log | tail -n1")"
     if [ -z "${KEYCLOAK_CLIENT_SECRET:-}" ]; then
@@ -189,8 +194,8 @@ q_keycloak_client_secret="$(quote_sq "$KEYCLOAK_CLIENT_SECRET")"
 echo "Phase 2b: Updating .env files"
 sync_repo_on_host "$APP_HOST"
 sync_repo_on_host "$PYTHON_HOST"
-run_remote_script "$APP_HOST" "deploy/scripts/update_env.sh" "export KEYCLOAK_CLIENT_SECRET='$q_keycloak_client_secret' DB_PASSWORD='$q_db_password'"
-run_remote_script "$PYTHON_HOST" "deploy/scripts/update_env.sh" "export KEYCLOAK_CLIENT_SECRET='$q_keycloak_client_secret' DB_PASSWORD='$q_db_password' MINIO_SECRET_KEY='$q_minio_secret_key'"
+run_remote_script "$APP_HOST" "deploy/scripts/update_env.sh" "export KEYCLOAK_CLIENT_SECRET='$q_keycloak_client_secret' DB_PASSWORD='$q_db_password' APP_BASE_URL='$q_app_base_url'"
+run_remote_script "$PYTHON_HOST" "deploy/scripts/update_env.sh" "export KEYCLOAK_CLIENT_SECRET='$q_keycloak_client_secret' DB_PASSWORD='$q_db_password' MINIO_SECRET_KEY='$q_minio_secret_key' APP_BASE_URL='$q_app_base_url'"
 
 if [ "$SKIP_DB" = false ]; then
     echo "Phase 3: database import"
