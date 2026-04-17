@@ -41,7 +41,10 @@ test_endpoint() {
     
     echo -n "Testing $name... "
     
-    http_code=$(curl -s -o /dev/null -w "%{http_code}" "$url" --max-time 10)
+    http_code=$(curl -s -o /dev/null -w "%{http_code}" "$url" --max-time 10 || true)
+    if [ -z "$http_code" ]; then
+        http_code="000"
+    fi
     
     if [ "$http_code" == "$expected_code" ]; then
         echo "✓ PASS (HTTP $http_code)"
@@ -76,7 +79,10 @@ test_postgresql() {
 test_minio() {
     echo -n "Testing MinIO... "
     
-    http_code=$(curl -s -o /dev/null -w "%{http_code}" "$MINIO_URL/minio/health/live" --max-time 10)
+    http_code=$(curl -s -o /dev/null -w "%{http_code}" "$MINIO_URL/minio/health/live" --max-time 10 || true)
+    if [ -z "$http_code" ]; then
+        http_code="000"
+    fi
     
     if [ "$http_code" == "200" ]; then
         echo "✓ PASS"
@@ -136,7 +142,7 @@ test_service() {
 
 echo ""
 echo "=== Testing SSO Server (192.168.1.59) ==="
-test_endpoint "Keycloak" "$SSO_URL/health"
+test_endpoint "Keycloak OIDC discovery" "$SSO_URL/realms/master/.well-known/openid-configuration"
 
 echo ""
 echo "=== Testing Application Server (192.168.1.66) ==="
@@ -189,7 +195,7 @@ else
 fi
 
 echo -n "Testing App Server -> SSO Server... "
-if curl -f -s --max-time 5 "$SSO_URL/health" > /dev/null 2>&1; then
+if curl -f -s --max-time 5 "$SSO_URL/realms/master/.well-known/openid-configuration" > /dev/null 2>&1; then
     echo "✓ PASS"
     ((PASSED++))
 else
