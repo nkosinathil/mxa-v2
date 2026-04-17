@@ -42,6 +42,7 @@ class AuthController
         // Redirect to Keycloak login
         $authUrl = $this->keycloakService->getAuthorizationUrl();
         $_SESSION['oauth_state'] = $this->keycloakService->getState();
+        $_SESSION['oauth_code_verifier'] = $this->keycloakService->getCodeVerifier();
         
         header('Location: ' . $authUrl);
         exit;
@@ -69,7 +70,8 @@ class AuthController
         
         try {
             // Exchange code for tokens
-            $tokens = $this->keycloakService->getAccessToken($_GET['code']);
+            $codeVerifier = $_SESSION['oauth_code_verifier'] ?? null;
+            $tokens = $this->keycloakService->getAccessToken($_GET['code'], $codeVerifier);
             
             // Get user info from token
             $userInfo = $this->keycloakService->getUserInfo($tokens['access_token']);
@@ -88,6 +90,7 @@ class AuthController
             
             // Clear OAuth state
             unset($_SESSION['oauth_state']);
+            unset($_SESSION['oauth_code_verifier']);
             
             // Log successful login
             error_log("User {$user['email']} logged in successfully");

@@ -17,6 +17,7 @@ class KeycloakService
     private Client $client;
     private array $config;
     private ?string $state = null;
+    private ?string $codeVerifier = null;
     
     public function __construct()
     {
@@ -30,6 +31,8 @@ class KeycloakService
     public function getAuthorizationUrl(): string
     {
         $this->state = bin2hex(random_bytes(16));
+        $this->codeVerifier = $this->generateCodeVerifier();
+        $codeChallenge = $this->generateCodeChallenge($this->codeVerifier);
         
         $params = [
             'client_id' => $this->config['client_id'],
@@ -37,6 +40,8 @@ class KeycloakService
             'response_type' => 'code',
             'scope' => 'openid profile email',
             'state' => $this->state,
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256',
         ];
         
         $baseUrl = sprintf(
@@ -51,22 +56,28 @@ class KeycloakService
     /**
      * Exchange authorization code for access token
      */
-    public function getAccessToken(string $code): array
+    public function getAccessToken(string $code, ?string $codeVerifier = null): array
     {
         $tokenUrl = sprintf(
             '%s/realms/%s/protocol/openid-connect/token',
             $this->config['server_url'],
             $this->config['realm']
         );
+
+        $formParams = [
+            'grant_type' => 'authorization_code',
+            'code' => $code,
+            'client_id' => $this->config['client_id'],
+            'client_secret' => $this->config['client_secret'],
+            'redirect_uri' => $this->config['redirect_uri'],
+        ];
+
+        if (!empty($codeVerifier)) {
+            $formParams['code_verifier'] = $codeVerifier;
+        }
         
         $response = $this->client->post($tokenUrl, [
-            'form_params' => [
-                'grant_type' => 'authorization_code',
-                'code' => $code,
-                'client_id' => $this->config['client_id'],
-                'client_secret' => $this->config['client_secret'],
-                'redirect_uri' => $this->config['redirect_uri'],
-            ],
+            'form_params' => $formParams,
         ]);
         
         return json_decode($response->getBody()->getContents(), true);
@@ -118,6 +129,14 @@ class KeycloakService
     {
         return $this->state;
     }
+
+    /**
+     * Get PKCE code verifier value
+     */
+    public function getCodeVerifier(): ?string
+    {
+        return $this->codeVerifier;
+    }
     
     /**
      * Validate access token
@@ -130,5 +149,21 @@ class KeycloakService
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    private function generateCodeVerifier(): string
+    {
+        // RFC 7636 requires 43-128 chars; base64url(64 random bytes) gives ~86 chars.
+        return $this->base64UrlEncode(random_bytes(64));
+    }
+
+    private function generateCodeChallenge(string $codeVerifier): string
+    {
+        return $this->base64UrlEncode(hash('sha256', $codeVerifier, true));
+    }
+
+    private function base64UrlEncode(string $value): string
+    {
+        return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 }
